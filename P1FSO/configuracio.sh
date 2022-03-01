@@ -1,5 +1,5 @@
 #! /bin/bash
-#./configuracio.sh -n nomFit -f 25 -c 40 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 ,4,5,-1.0,0.3
+#./configuracio.sh -n nomFit -f 25 -c 30 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 4,5,-1.0,0.3
 nflag='false'
 fflag='false'
 cflag='false'
@@ -75,6 +75,15 @@ do
         echo "Too many args at -0"
         exit 6
     fi
+done
+#-1 param checking
+# Read the split words into an array
+# based on space delimiter
+read -ra newarr <<< "$Iarg"
+x=0
+for val in "${newarr[@]}";
+do
+    if$(echo "$val<-1.0"| bc -l)
 done
 ######################################################################################
 

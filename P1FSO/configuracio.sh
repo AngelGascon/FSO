@@ -51,12 +51,10 @@ elif [ $Oflag = 'false' ] || [ $Iflag = 'false' ]
 then    echo "Missing -0 -1 args"
         exit 5
 fi
-#-0, -1, resta  TODO
+###################################
 # Set comma as the delimiter
 IFS=','
 #-0 param checking
-# Read the split words into an array
-# based on space delimiter
 read -ra newarr <<< "$Oarg"
 x=0
 for val in "${newarr[@]}";
@@ -77,17 +75,65 @@ do
     fi
 done
 #-1 param checking
-# Read the split words into an array
-# based on space delimiter
 read -ra newarr <<< "$Iarg"
 x=0
 for val in "${newarr[@]}";
 do
-    if$(echo "$val<-1.0"| bc -l)
+if [ $x -ne 4 ]
+    then
+        if [ $x -eq 0 ] && ([ $val -lt 2 ] || [ $val -gt 118 ])
+        then    echo "Error al camp -1 param0 [2...118]"
+                exit 5
+        elif [ $x -eq 1 ] && ([ $val -lt 2 ] || [ $val -gt 35 ])
+        then    echo "Error al camp -1 param1 [2...35]"
+                exit 5
+        #elif [ $x -eq 2 ] && ([ $(($val)) -lt -1 ] || [ $(($val)) -gt 1 ])
+        #then    echo "Error al camp -1 param2 [-1.0...1.0] $(($val))"
+        #        exit 5
+        #elif [ $x -eq 3 ] && ([ $val -lt -1 ] || [ $val -gt 1 ])
+        #then    echo "Error al camp -1 param3 [-1.0...1.0]"
+        #        exit 5
+        fi
+        x=$(($x+1))
+    else
+        echo "Too many args at -1"
+        exit 6
+    fi
 done
-######################################################################################
-
-
-
-######################################################################################
-printf "$farg $carg $parg\n$Oarg $marg\n$Iarg\n$resta\n" | tr ',' ' ' > $file   #tr , -> ''
+# resta checking
+x=0     #max val per line (4)
+y=0     #max lines (8)
+IFS=' '
+read -ra newarr2 <<< "$resta"
+IFS=','
+for args in "${newarr2[@]}";
+do
+        if [ $y -eq 8 ]
+        then 
+                echo "Max extra balls 8, too many args (lines) at resta"
+                exit 6
+        fi
+        restat="${restat}\n$args"       #creates format to add at file of resta
+        read -ra newarr <<< "$args"
+        x=0
+        for val in "${newarr[@]}";
+        do
+        if [ $x -ne 4 ]
+        then
+                if [ $x -eq 0 ] && ([ $val -lt 2 ] || [ $val -gt 118 ])
+                then    echo "Error al camp resta param0 arg $y [2...118]"
+                        exit 5
+                elif [ $x -eq 1 ] && ([ $val -lt 2 ] || [ $val -gt 35 ])
+                then    echo "Error al camp resta param1 arg $y [2...35]"
+                        exit 5
+                fi
+                x=$(($x+1))
+                else
+                        echo "Too many args at resta arg $y"
+                        exit 6
+                fi
+        done
+        y=$(($y+1))
+done
+########################################################################################## floats checking missing TODO
+printf "$farg $carg $parg\n$Oarg $marg\n$Iarg$restat" | tr ',' ' ' > $file   #tr (, -> '')

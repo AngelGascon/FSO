@@ -1,5 +1,6 @@
 #! /bin/bash
-#./configuracio.sh -n nomFit -f 25 -c 30 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 4,5,-1.0,0.3
+#./configuracioV2.sh -n nomFit -f 25 -c 30 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 4,5,-1.0,0.3
+#if bc error -> sudo apt-get install bc 
 nflag='false'
 fflag='false'
 cflag='false'
@@ -88,7 +89,7 @@ then
         elems=$(($elems+1))
     done
 fi
-######Check and asks parameters i error
+######Check and asks parameters i error //TODO flags if non existing file
 x=0
 while [ $x -eq 0 ]
 do
@@ -101,7 +102,7 @@ do
     Iqat=$(echo $Iarg | cut -d, -f4)
     #####
     #-f param
-    if [ $farg -lt 10 ] || [ $farg -gt 120 ] || [ fflag = 'false' ]
+    if [ $farg -lt 10 ] || [ $farg -gt 120 ]
     then    read -p "Error al camp -f [10...120]" farg
     #-c param
     elif [ $carg -lt 10 ] || [ $carg -gt 36 ]
@@ -119,22 +120,62 @@ do
     elif ([ $Oseg -lt 2 ] || [ $Oseg -gt 35 ])
     then    read -p "Error al camp -0 param1 [2...35]" Oseg
             Oarg="$Opri,$Oseg"
-    #-1 param
+    #-1 param -> Iter Iqat real numbers
     elif ([ $Ipri -lt 2 ] || [ $Ipri -gt 118 ])
     then    read -p "Error al camp -1 param0 [2...118]" Ipri
             Iarg="$Ipri,$Iseg,$Iter,$Iqat"
     elif ([ $Iseg -lt 2 ] || [ $Iseg -gt 35 ])
     then    read -p "Error al camp -1 param1 [2...35]" Iseg
             Iarg="$Ipri,$Iseg,$Iter,$Iqat"
-    ##TODO check reals, Iter Iqat
+    elif [ $(echo "$Iter<-1.0" | bc) -eq 1 ] || [ $(echo "$Iter>1.0" | bc) -eq 1 ]
+    then    read -p "Error al camp -1 param2 [-1.0 ... 1.0]" Iter
+            Iarg="$Ipri,$Iseg,$Iter,$Iqat"
+            echo $Iarg
+    elif [ $(echo "$Iqat<-1.0" | bc) -eq 1 ] || [ $(echo "$Iqat>1.0" | bc) -eq 1 ]
+    then    read -p "Error al camp -1 param3 [-1.0 ... 1.0]" Iqat
+            Iarg="$Ipri,$Iseg,$Iter,$Iqat"
     else    x=1
     fi
 done
 ##Checking resta
-
-##
-echo $Iarg
-echo $resta
-echo $Oarg
-########################################################################################## floats checking missing TODO
+echo "RESTA $resta"
+y=0     #max lines (8)
+IFS=' '
+read -ra newarr <<< "$resta"
+restat=""
+for args in "${newarr[@]}";
+do
+        #Divide resta args
+        Ipri=$(echo $args | cut -d, -f1)
+        Iseg=$(echo $args | cut -d, -f2)
+        Iter=$(echo $args | cut -d, -f3)
+        Iqat=$(echo $args | cut -d, -f4)
+        echo "args $args at resta $resta"
+        #Check resta args
+        x=0
+        while [ $x -eq 0 ]
+        do
+            if ([ $Ipri -lt 2 ] || [ $Ipri -gt 118 ])
+            then    read -p "Error a resta param0 del camp$y [2...118]" Ipri
+                    args="$Ipri,$Iseg,$Iter,$Iqat"
+            elif ([ $Iseg -lt 2 ] || [ $Iseg -gt 35 ])
+            then    read -p "Error a resta param1 del camp$y [2...35]" Iseg
+                    args="$Ipri,$Iseg,$Iter,$Iqat"
+            elif [ $(echo "$Iter<-1.0" | bc) -eq 1 ] || [ $(echo "$Iter>1.0" | bc) -eq 1 ]
+            then    read -p "Error a resta param2 del camp$y [-1.0 ... 1.0]" Iter
+                    args="$Ipri,$Iseg,$Iter,$Iqat"
+            elif [ $(echo "$Iqat<-1.0" | bc) -eq 1 ] || [ $(echo "$Iqat>1.0" | bc) -eq 1 ]
+            then    read -p "Error a resta param3 del camp$y [-1.0 ... 1.0]" Iqat
+                    args="$Ipri,$Iseg,$Iter,$Iqat"
+            else    x=1
+            fi
+        done
+        restat="${restat}\n$args"
+        y=$(($y+1))
+        if [ $y -eq 8 ]
+        then
+            break
+        fi
+done
+##########################################################################################
 printf "$farg $carg $parg\n$Oarg $marg\n$Iarg$restat" | tr ',' ' ' > $file   #tr (, -> '')

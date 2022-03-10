@@ -161,6 +161,7 @@ do
         Iseg=$(echo $args | cut -d, -f2)
         Iter=$(echo $args | cut -d, -f3)
         Iqat=$(echo $args | cut -d, -f4)
+        #Checks empty args
         if ([ -z "$Ipri" ] || [ -z "$Iseg" ] || [ -z "$Iter" ] || [ -z "$Iqat" ])
         then 
             Ipri=-10
@@ -168,17 +169,17 @@ do
             Iter=-10
             Iqat=-10
         fi
-        #Check resta args
+        #Check resta args, $var =~ ^[0-9]+$ for int, $var =~ ^[+-]?[0-9]*\.?[0-9]+$ for floats
         x=0
         while [ $x -eq 0 ]
         do
-            if ! [[ $farg =~ ^[0-9]+$ ]] || [ $Ipri -lt 2 ] || [ $Ipri -gt 118 ]
+            if ! [[ $Ipri =~ ^[0-9]+$ ]] || [ $Ipri -lt 2 ] || [ $Ipri -gt 118 ]
             then    read -p "Error a resta param0 del camp$y [2...118]" Ipri
                     args="$Ipri,$Iseg,$Iter,$Iqat"
-            elif ! [[ $farg =~ ^[0-9]+$ ]] || [ $Iseg -lt 2 ] || [ $Iseg -gt 35 ]
+            elif ! [[ $Iseg =~ ^[0-9]+$ ]] || [ $Iseg -lt 2 ] || [ $Iseg -gt 35 ]
             then    read -p "Error a resta param1 del camp$y [2...35]" Iseg
                     args="$Ipri,$Iseg,$Iter,$Iqat"
-            elif ! [[ $Iqat =~ ^[+-]?[0-9]*\.?[0-9]+$ ]] || [ $(echo "$Iter<-1.0" | bc) -eq 1 ] || [ $(echo "$Iter>1.0" | bc) -eq 1 ]
+            elif ! [[ $Iter =~ ^[+-]?[0-9]*\.?[0-9]+$ ]] || [ $(echo "$Iter<-1.0" | bc) -eq 1 ] || [ $(echo "$Iter>1.0" | bc) -eq 1 ]
             then    read -p "Error a resta param2 del camp$y [-1.0 ... 1.0]" Iter
                     args="$Ipri,$Iseg,$Iter,$Iqat"
             elif ! [[ $Iqat =~ ^[+-]?[0-9]*\.?[0-9]+$ ]] || [ $(echo "$Iqat<-1.0" | bc) -eq 1 ] || [ $(echo "$Iqat>1.0" | bc) -eq 1 ]

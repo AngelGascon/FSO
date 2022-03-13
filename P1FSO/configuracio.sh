@@ -33,14 +33,6 @@ then
 else
     rflag='true'
 fi
-echo "argument -f $farg"
-echo "argument -c $carg"
-echo "argument -p $parg"
-echo "argument -0 $Oarg"
-echo "argument -m $marg"
-echo "argument -1 $Iarg"
-echo "arguments l4-8 $resta"
-echo "fitxer = $file"
 ##########################################################################################
 #Missing -n file param
 if [ $file = 'false' ]
@@ -89,7 +81,7 @@ then
         elems=$(($elems+1))
     done
 fi
-######Check and asks parameters i error //TODO flags if non existing file
+######Check and asks parameters and error
 x=0
 while [ $x -eq 0 ]
 do

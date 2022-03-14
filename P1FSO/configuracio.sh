@@ -15,14 +15,14 @@ Iflag='false'
 #Flags to check if the parametres exist
 while getopts 'n:f:c:p:0:m:1:' opcio; do
     case "${opcio}" in
-        n) echo "File: " ; file="${OPTARG}" ; echo $OPTIND;;
-        f) echo "Linea1 -f" ; farg="${OPTARG}" ; echo $OPTIND;;
-        c) echo "Linea1 -c" ; carg="${OPTARG}"; echo $OPTIND;;
-        p) echo "Linea1 -p" ; parg="${OPTARG}"; echo $OPTIND;;
-        0) echo "Linea2 -0" ; Oarg="${OPTARG}"; Oflag='true'; echo $OPTIND;;
-        m) echo "Linea2 -m" ; marg="${OPTARG}"; echo $OPTIND;;
-        1) echo "Linea3 -1" ; Iarg="${OPTARG}"; Iflag='true'; echo $OPTIND;;
-        *) error "Unexpected option ${opcio}";
+        n) file="${OPTARG}";;
+        f) farg="${OPTARG}";;
+        c) carg="${OPTARG}";;
+        p) parg="${OPTARG}";;
+        0) Oarg="${OPTARG}"; Oflag='true';;
+        m) marg="${OPTARG}";;
+        1) Iarg="${OPTARG}"; Iflag='true';;
+        *) error "Unexpected option ${opcio}";;
     esac
 done
 shift $(($OPTIND - 1))
@@ -105,9 +105,6 @@ then
         elems=$(($elems+1))
     done
 fi
-echo $Iarg
-echo $Oarg
-echo $resta
 ######Check and asks parameters and error
 x=0
 while [ $x -eq 0 ]

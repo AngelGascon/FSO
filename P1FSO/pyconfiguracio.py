@@ -132,4 +132,4 @@ while(x<len(args) and x<8):
 with open(filearg, 'w') as the_file:
     the_file.write(farg+" "+carg+" "+" "+parg+"\n"+Oarg.replace(","," ")+" "+marg+"\n"+Iarg.replace(","," "))
     for x in args:
-        the_file.write("\n"+x)
+        the_file.write("\n"+x.replace(","," "))

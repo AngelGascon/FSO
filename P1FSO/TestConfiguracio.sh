@@ -29,3 +29,9 @@ echo "camp1.txt:"
 cat camp1.txt
 echo ""
 echo "--------------------------------------"
+echo "6 test: ./configuracio.sh -n camp1.txt"
+./configuracio.sh -n camp1.txt
+echo "camp1.txt:"
+cat camp1.txt
+echo ""
+echo "--------------------------------------"

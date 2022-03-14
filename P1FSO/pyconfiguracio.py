@@ -69,7 +69,9 @@ if file_exists(filearg):
 x=0
 while(x==0):
     Osplited=Oarg.split(',')
+    Oarg=Osplited[0]+","+Osplited[1]
     Isplitted=Iarg.split(',')
+    Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
     #-f param
     if farg.isnumeric()==False or int(farg)<10 or int(farg)>120:
         farg = input("Error al camp -f [10...120] ")
@@ -108,6 +110,7 @@ while(x==0):
 x=0
 while(x<len(args) and x<8):
     restaSplitted=args[x].split(',')
+    args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
     y=0
     while(y==0):
         if restaSplitted[0].isnumeric==False or int(restaSplitted[0])<2 or int(restaSplitted[0])>118:
@@ -128,3 +131,5 @@ while(x<len(args) and x<8):
 ########## Write file
 with open(filearg, 'w') as the_file:
     the_file.write(farg+" "+carg+" "+" "+parg+"\n"+Oarg.replace(","," ")+" "+marg+"\n"+Iarg.replace(","," "))
+    for x in args:
+        the_file.write("\n"+x)

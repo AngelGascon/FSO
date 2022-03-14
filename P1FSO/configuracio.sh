@@ -212,4 +212,5 @@ do
         fi
 done
 ##########################################################################################
-printf "$farg $carg $parg\n$Oarg $marg\n$Iarg$restat" | tr ',' ' ' > $file   #tr (, -> '')
+printf "$farg $carg $parg\n$Oarg $marg\n$Iarg$restat" | tr ',' ' ' > $file
+#tr (, -> '')

@@ -12,12 +12,12 @@ def isfloat(num):
         return False
 argsflag='True'
 filearg='False'
-farg=-10
-carg=-10
-parg=-10
-Oarg=-10
-marg=-10
-Iarg=-10
+farg='-10'
+carg='-10'
+parg='-10'
+Oarg='-10'
+marg='-10'
+Iarg='-10'
 Oarg='-10,-10'
 Iarg='-10,-10,-10,-10'
 argv = sys.argv[1:]
@@ -50,15 +50,15 @@ if file_exists(filearg):
     elems=0
     for line in fit:
         currentLine = line.split(" ")
-        if elems == 0 and farg == -10:
+        if elems == 0 and int(farg) == -10:
             farg = currentLine[0]
-        if elems == 0 and carg == -10:
+        if elems == 0 and int(carg) == -10:
             carg = currentLine[1]
-        if elems == 0 and parg == -10:
+        if elems == 0 and int(parg) == -10:
             parg = currentLine[2].rstrip()
         if elems == 1 and Oarg == '-10,-10':
             Oarg = currentLine[0]+','+currentLine[1]
-        if elems == 1 and marg == -10:
+        if elems == 1 and int(marg) == -10:
             marg = currentLine[2].rstrip()
         if elems == 2 and Iarg == '-10,-10,-10,-10':
             Iarg = currentLine[0]+','+currentLine[1]+','+currentLine[2]+','+currentLine[3]
@@ -88,14 +88,14 @@ while(x==0):
     elif Osplited[0].isnumeric()==False or int(Osplited[0])<2 or int(Osplited[0])>118:
         Osplited[0] = input("Error al camp -0 param0 [2...118]")
         Oarg=Osplited[0]+","+Osplited[1]
-    elif Osplited[1].isnumeric()==False or int(Osplited[1])<2 or int(Osplited[0])>35:
+    elif Osplited[1].isnumeric()==False or int(Osplited[1])<2 or int(Osplited[1])>35:
         Osplited[1] = input("Error al camp -0 param1 [2...35]")
         Oarg=Osplited[0]+","+Osplited[1]
     #-1 param
     elif Isplitted[0].isnumeric==False or int(Isplitted[0])<2 or int(Isplitted[0])>118:
         Isplitted[0] = input("Error al camp -1 param0 [2...118]")
         Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
-    elif Isplitted[1].isnumeric()==False or int(Isplitted[1])<2 or int(Isplitted[0])>35:
+    elif Isplitted[1].isnumeric()==False or int(Isplitted[1])<2 or int(Isplitted[1])>35:
         Isplitted[1] = input("Error al camp -1 param1 [2...35]")
         Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
     elif isfloat(Isplitted[2])==False or float(Isplitted[2])<-1.0 or float(Isplitted[2])>1.0:
@@ -130,6 +130,6 @@ while(x<len(args) and x<8):
     x=x+1
 ########## Write file
 with open(filearg, 'w') as the_file:
-    the_file.write(farg+" "+carg+" "+" "+parg+"\n"+Oarg.replace(","," ")+" "+marg+"\n"+Iarg.replace(","," "))
+    the_file.write(farg+" "+carg+" "+parg+"\n"+Oarg.replace(","," ")+" "+marg+"\n"+Iarg.replace(","," "))
     for x in args:
         the_file.write("\n"+x.replace(","," "))

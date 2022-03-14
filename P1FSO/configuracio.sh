@@ -1,5 +1,5 @@
 #! /bin/bash
-#./configuracioV2.sh -n nomFit -f 25 -c 30 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 4,5,-1.0,0.3
+#./configuracio.sh -n nomFit -f 25 -c 30 -p 20 -0 22,30 -m 10 -1 21,20,-1.0,0.3 4,5,-1.0,0.3
 #if bc error -> sudo apt-get install bc 
 file='false'
 farg=-10
@@ -8,8 +8,10 @@ parg=-10
 Oarg=-10
 marg=-10
 Iarg=-10
-Oarg="-10,-10"
-Iarg="-10,-10,-10,-10"
+Oarg=""
+Iarg=""
+Oflag='false'
+Iflag='false'
 #Flags to check if the parametres exist
 while getopts 'n:f:c:p:0:m:1:' opcio; do
     case "${opcio}" in
@@ -17,13 +19,12 @@ while getopts 'n:f:c:p:0:m:1:' opcio; do
         f) echo "Linea1 -f" ; farg="${OPTARG}" ; echo $OPTIND;;
         c) echo "Linea1 -c" ; carg="${OPTARG}"; echo $OPTIND;;
         p) echo "Linea1 -p" ; parg="${OPTARG}"; echo $OPTIND;;
-        0) echo "Linea2 -0" ; Oarg="${OPTARG}"; echo $OPTIND;;
+        0) echo "Linea2 -0" ; Oarg="${OPTARG}"; Oflag='true'; echo $OPTIND;;
         m) echo "Linea2 -m" ; marg="${OPTARG}"; echo $OPTIND;;
-        1) echo "Linea3 -1" ; Iarg="${OPTARG}"; echo $OPTIND;;
+        1) echo "Linea3 -1" ; Iarg="${OPTARG}"; Iflag='true'; echo $OPTIND;;
         *) error "Unexpected option ${opcio}";
     esac
 done
-echo $Oarg
 shift $(($OPTIND - 1))
 resta=$*
 #If user intro extra args (8 balls)
@@ -62,25 +63,51 @@ then
         then
             parg=$line
         #-0
-        elif ([ $elems -eq 3 ] || [ $elems -eq 4 ]) && [ $Oarg = "-10,-10" ]#TODO
+        elif [ $elems -eq 3 ] && [ $Oflag = "false" ]
         then
-            Oarg="${Oarg},$line"
+            Oarg="$line"
+        elif [ $elems -eq 4 ] && [ $Oflag = "false" ]
+        then
+	    Oarg="${Oarg},$line"
         #-m
         elif [ $elems -eq 5 ] && [ $marg -eq -10 ]
         then
             marg=$line
         #-1
-        elif ([ $elems -gt 5 ] && [ $elems -lt 10 ]) && [ $Iarg = "-10,-10,-10,-10" ]#TODO
+        elif [ $elems -eq 6 ] && [ $Iflag = "false" ]
+        then
+            Iarg="$line"
+        elif ([ $elems -gt 6 ] && [ $elems -lt 10 ]) && [ $Iflag == "false" ]
         then
             Iarg="${Iarg},$line"
         #Resta 8lines, will only read if user didn't pass extra args
-        elif ([ $elems -gt 9 ] && [ $elems -lt 32 ]) && [ $rflag = 'false' ]
+        elif ([ $elems -gt 9 ] && [ $elems -lt 42 ]) && [ $rflag == 'false' ]
         then
-            resta="${resta} $line"
+            if [ $elemsResta -eq 0 ]
+            then
+                resta=$line
+            elif [ $elemsResta -eq 3 ]
+            then
+                resta="${resta},$line "
+                elemsResta=4
+            elif [ $elemsResta -eq 5 ]
+            then
+                resta="${resta}$line"
+            elif [ $elemsResta -eq 8 ]
+            then
+                resta="${resta},$line "
+                elemsResta=4
+            else
+                resta="${resta},$line"
+            fi
+            elemsResta=$(($elemsResta+1))
         fi
         elems=$(($elems+1))
     done
 fi
+echo $Iarg
+echo $Oarg
+echo $resta
 ######Check and asks parameters and error
 x=0
 while [ $x -eq 0 ]
@@ -141,7 +168,7 @@ do
     fi
 done
 ##Checking resta
-y=0 #max lines (8)
+y=0
 #Set delimiter
 IFS=' '
 read -ra newarr <<< "$resta"
@@ -154,7 +181,7 @@ do
         Iter=$(echo $args | cut -d, -f3)
         Iqat=$(echo $args | cut -d, -f4)
         #Checks empty args
-        if ([ -z "$Ipri" ] || [ -z "$Iseg" ] || [ -z "$Iter" ] || [ -z "$Iqat" ])#TODO
+        if ([ -z "$Ipri" ] || [ -z "$Iseg" ] || [ -z "$Iter" ] || [ -z "$Iqat" ])
         then 
             Ipri=-10
             Iseg=-10

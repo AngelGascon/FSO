@@ -62,7 +62,7 @@ then
         then
             parg=$line
         #-0
-        elif ([ $elems -eq 3 ] || [ $elems -eq 4 ]) && [ $Oarg = "-10,-10" ]
+        elif ([ $elems -eq 3 ] || [ $elems -eq 4 ]) && [ $Oarg = "-10,-10" ]#TODO
         then
             Oarg="${Oarg},$line"
         #-m
@@ -70,7 +70,7 @@ then
         then
             marg=$line
         #-1
-        elif ([ $elems -gt 5 ] && [ $elems -lt 10 ]) && [ $Iarg = "-10,-10,-10,-10" ]
+        elif ([ $elems -gt 5 ] && [ $elems -lt 10 ]) && [ $Iarg = "-10,-10,-10,-10" ]#TODO
         then
             Iarg="${Iarg},$line"
         #Resta 8lines, will only read if user didn't pass extra args
@@ -154,7 +154,7 @@ do
         Iter=$(echo $args | cut -d, -f3)
         Iqat=$(echo $args | cut -d, -f4)
         #Checks empty args
-        if ([ -z "$Ipri" ] || [ -z "$Iseg" ] || [ -z "$Iter" ] || [ -z "$Iqat" ])
+        if ([ -z "$Ipri" ] || [ -z "$Iseg" ] || [ -z "$Iter" ] || [ -z "$Iqat" ])#TODO
         then 
             Ipri=-10
             Iseg=-10

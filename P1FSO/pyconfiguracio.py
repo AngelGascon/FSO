@@ -137,6 +137,6 @@ while(x<len(args) and x<8):
     x=x+1
 ########## Write file
 with open(filearg, 'w') as the_file:
-    the_file.write(farg+" "+carg+" "+parg+"\n"+Oarg.replace(","," ")+" "+marg+"\n"+Iarg.replace(","," "))
+    the_file.write(str(farg)+" "+str(carg)+" "+str(parg)+"\n"+str(Oarg.replace(","," "))+" "+str(marg)+"\n"+str(Iarg.replace(","," ")))
     for x in args:
-        the_file.write("\n"+x.replace(","," "))
+        the_file.write("\n"+str(x.replace(","," ")))

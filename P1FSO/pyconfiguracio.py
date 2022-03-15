@@ -3,21 +3,28 @@
 import getopt
 import sys
 from os.path import exists as file_exists
-#Defined to check -1 and resta args later
+#Defined to check float inputs later
 def isfloat(num):
     try:
         float(num)
         return True
     except ValueError:
         return False
+#Defined to check int inputs later
+def isint(num):
+    try:
+        int(num)
+        return True
+    except ValueError:
+        return False
 argsflag='True'
 filearg='False'
-farg='-10'
-carg='-10'
-parg='-10'
-Oarg='-10'
-marg='-10'
-Iarg='-10'
+farg=-10
+carg=-10
+parg=-10
+Oarg=-10
+marg=-10
+Iarg=-10
 Oarg='-10,-10'
 Iarg='-10,-10,-10,-10'
 argv = sys.argv[1:]
@@ -73,29 +80,29 @@ while(x==0):
     Isplitted=Iarg.split(',')
     Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
     #-f param
-    if farg.isnumeric()==False or int(farg)<10 or int(farg)>120:
+    if isint(farg)==False or int(farg)<10 or int(farg)>120:
         farg = input("Error al camp -f [10...120] ")
     #-c param
-    elif carg.isnumeric()==False or int(carg)<10 or int(carg)>36:
+    elif isint(carg)==False or int(carg)<10 or int(carg)>36:
         carg = input("Error al camp -c [10...36] ")
     #-p param
-    elif parg.isnumeric()==False or int(parg)<8 or int(parg)>int(farg)-1:
+    elif isint(parg)==False or int(parg)<8 or int(parg)>int(farg)-1:
         parg = input("Error al camp -p [8..."+str(int(farg)-1)+"] ")
     #-m param
-    elif marg.isnumeric()==False or int(marg)<3 or int(marg)>int(farg)-1:
+    elif isint(marg)==False or int(marg)<3 or int(marg)>int(farg)-1:
         marg = input("Error al camp -m [3..."+str(int(farg)-1)+"] ")
     #-0 param
-    elif Osplited[0].isnumeric()==False or int(Osplited[0])<2 or int(Osplited[0])>118:
+    elif isint(Osplited[0])==False or int(Osplited[0])<2 or int(Osplited[0])>118:
         Osplited[0] = input("Error al camp -0 param0 [2...118]")
         Oarg=Osplited[0]+","+Osplited[1]
-    elif Osplited[1].isnumeric()==False or int(Osplited[1])<2 or int(Osplited[1])>35:
+    elif isint(Osplited[1])==False or int(Osplited[1])<2 or int(Osplited[1])>35:
         Osplited[1] = input("Error al camp -0 param1 [2...35]")
         Oarg=Osplited[0]+","+Osplited[1]
     #-1 param
-    elif Isplitted[0].isnumeric==False or int(Isplitted[0])<2 or int(Isplitted[0])>118:
+    elif isint(Isplitted[0])==False or int(Isplitted[0])<2 or int(Isplitted[0])>118:
         Isplitted[0] = input("Error al camp -1 param0 [2...118]")
         Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
-    elif Isplitted[1].isnumeric()==False or int(Isplitted[1])<2 or int(Isplitted[1])>35:
+    elif isint(Isplitted[1])==False or int(Isplitted[1])<2 or int(Isplitted[1])>35:
         Isplitted[1] = input("Error al camp -1 param1 [2...35]")
         Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
     elif isfloat(Isplitted[2])==False or float(Isplitted[2])<-1.0 or float(Isplitted[2])>1.0:
@@ -113,10 +120,10 @@ while(x<len(args) and x<8):
     args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
     y=0
     while(y==0):
-        if restaSplitted[0].isnumeric==False or int(restaSplitted[0])<2 or int(restaSplitted[0])>118:
+        if isint(restaSplitted[0])==False or int(restaSplitted[0])<2 or int(restaSplitted[0])>118:
             restaSplitted[0] = input("Error a resta camp "+str(x)+" param0 [2...118]")
             args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
-        elif restaSplitted[1].isnumeric()==False or int(restaSplitted[1])<2 or int(restaSplitted[0])>35:
+        elif isint(restaSplitted[1])==False or int(restaSplitted[1])<2 or int(restaSplitted[0])>35:
             restaSplitted[1] = input("Error al camp "+str(x)+" param1 [2...35]")
             args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
         elif isfloat(restaSplitted[2])==False or float(restaSplitted[2])<-1.0 or float(restaSplitted[2])>1.0:

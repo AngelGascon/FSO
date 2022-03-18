@@ -30,7 +30,7 @@ cat camp1.txt
 echo ""
 echo "--------------------------------------"
 echo "6 test: ./configuracio.sh -n camp1.txt"
-./configuracio.sh -n camp1.txt
+./configuracio.sh -n camp1.txt 11,22,1.0,0.5 5,7,-1.0,0.3 5,3,-1.0,0.3 8,4,-1.0,0.3 50,20,-1.0,0.5 55,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 30,13,0.0,0.3
 echo "camp1.txt:"
 cat camp1.txt
 echo ""

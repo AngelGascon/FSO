@@ -30,7 +30,7 @@ cat camp1Py.txt
 echo ""
 echo "--------------------------------------"
 echo "6 test: python pyconfiguracio.py -n camp1Py.txt"
-python pyconfiguracio.py -n camp1Py.txt
+python pyconfiguracio.py -n camp1Py.txt 11,22,1.0,0.5 5,7,-1.0,0.3 5,3,-1.0,0.3 8,4,-1.0,0.3 50,20,-1.0,0.5 55,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 1,3,-1.0,0.3 30,13,0.0,0.3
 echo "camp1Py.txt:"
 cat camp1Py.txt
 echo ""

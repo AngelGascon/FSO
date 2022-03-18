@@ -76,9 +76,9 @@ if file_exists(filearg):
 x=0
 while(x==0):
     Osplited=Oarg.split(',')
-    Oarg=Osplited[0]+","+Osplited[1]
+    Oarg=str(Osplited[0])+","+str(Osplited[1])
     Isplitted=Iarg.split(',')
-    Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
+    Iarg=str(Isplitted[0])+","+str(Isplitted[1])+","+str(Isplitted[2])+","+str(Isplitted[3])
     #-f param
     if isint(farg)==False or int(farg)<10 or int(farg)>120:
         farg = input("Error al camp -f [10...120] ")
@@ -94,44 +94,44 @@ while(x==0):
     #-0 param
     elif isint(Osplited[0])==False or int(Osplited[0])<2 or int(Osplited[0])>118:
         Osplited[0] = input("Error al camp -0 param0 [2...118]")
-        Oarg=Osplited[0]+","+Osplited[1]
+        Oarg=str(Osplited[0])+","+str(Osplited[1])
     elif isint(Osplited[1])==False or int(Osplited[1])<2 or int(Osplited[1])>35:
         Osplited[1] = input("Error al camp -0 param1 [2...35]")
-        Oarg=Osplited[0]+","+Osplited[1]
+        Oarg=str(Osplited[0])+","+str(Osplited[1])
     #-1 param
     elif isint(Isplitted[0])==False or int(Isplitted[0])<2 or int(Isplitted[0])>118:
         Isplitted[0] = input("Error al camp -1 param0 [2...118]")
-        Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
+        Iarg=str(Isplitted[0])+","+str(Isplitted[1])+","+str(Isplitted[2])+","+str(Isplitted[3])
     elif isint(Isplitted[1])==False or int(Isplitted[1])<2 or int(Isplitted[1])>35:
         Isplitted[1] = input("Error al camp -1 param1 [2...35]")
-        Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
+        Iarg=str(Isplitted[0])+","+str(Isplitted[1])+","+str(Isplitted[2])+","+str(Isplitted[3])
     elif isfloat(Isplitted[2])==False or float(Isplitted[2])<-1.0 or float(Isplitted[2])>1.0:
         Isplitted[2] = input("Error al camp -1 param2 [-1.0 ... 1.0]")
-        Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
+        Iarg=str(Isplitted[0])+","+str(Isplitted[1])+","+str(Isplitted[2])+","+str(Isplitted[3])
     elif isfloat(Isplitted[3])==False or float(Isplitted[3])<-1.0 or float(Isplitted[3])>1.0:
         Isplitted[3] = input("Error al camp -1 param3 [-1.0 ... 1.0]")
-        Iarg=Isplitted[0]+","+Isplitted[1]+","+Isplitted[2]+","+Isplitted[3]
+        Iarg=str(Isplitted[0])+","+str(Isplitted[1])+","+str(Isplitted[2])+","+str(Isplitted[3])
     else:
         x=1
 ##########Checking resta
 x=0
 while(x<len(args) and x<8):
     restaSplitted=args[x].split(',')
-    args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
+    args[x]=str(restaSplitted[0])+","+str(restaSplitted[1])+","+str(restaSplitted[2])+","+str(restaSplitted[3])
     y=0
     while(y==0):
         if isint(restaSplitted[0])==False or int(restaSplitted[0])<2 or int(restaSplitted[0])>118:
             restaSplitted[0] = input("Error a resta camp "+str(x)+" param0 [2...118]")
-            args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
-        elif isint(restaSplitted[1])==False or int(restaSplitted[1])<2 or int(restaSplitted[0])>35:
+            args[x]=str(restaSplitted[0])+","+str(restaSplitted[1])+","+str(restaSplitted[2])+","+str(restaSplitted[3])
+        elif isint(restaSplitted[1])==False or int(restaSplitted[1])<2 or int(restaSplitted[1])>35:
             restaSplitted[1] = input("Error al camp "+str(x)+" param1 [2...35]")
-            args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
+            args[x]=str(restaSplitted[0])+","+str(restaSplitted[1])+","+str(restaSplitted[2])+","+str(restaSplitted[3])
         elif isfloat(restaSplitted[2])==False or float(restaSplitted[2])<-1.0 or float(restaSplitted[2])>1.0:
             restaSplitted[2] = input("Error al camp "+str(x)+" param2 [-1.0 ... 1.0]")
-            args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
+            args[x]=str(restaSplitted[0])+","+str(restaSplitted[1])+","+str(restaSplitted[2])+","+str(restaSplitted[3])
         elif isfloat(restaSplitted[3])==False or float(restaSplitted[3])<-1.0 or float(restaSplitted[3])>1.0:
             restaSplitted[3] = input("Error al camp "+str(x)+" param3 [-1.0 ... 1.0]")
-            args[x]=restaSplitted[0]+","+restaSplitted[1]+","+restaSplitted[2]+","+restaSplitted[3]
+            args[x]=str(restaSplitted[0])+","+str(restaSplitted[1])+","+str(restaSplitted[2])+","+str(restaSplitted[3])
         else:
             y=1
     x=x+1

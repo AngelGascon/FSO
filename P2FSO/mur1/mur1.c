@@ -102,9 +102,9 @@ int n_fil, n_col;		/* numero de files i columnes del taulell */
 int m_por;			/* mida de la porteria (en caracters) */
 int f_pal, c_pal;		/* posicio del primer caracter de la paleta */
 int m_pal;				/* mida de la paleta */
-int f_pil, c_pil;		/* posicio de la pilota, en valor enter */
-float pos_f, pos_c;		/* posicio de la pilota, en valor real */
-float vel_f, vel_c;		/* velocitat de la pilota, en valor real */
+int f_pil[MAXBALLS], c_pil[MAXBALLS];		/* posicio de la pilota, en valor enter */
+float pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
+float vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
 int nblocs = 0;
 int dirPaleta = 0;
 int retard;			/* valor del retard de moviment, en mil.lisegons */
@@ -112,6 +112,7 @@ int retard;			/* valor del retard de moviment, en mil.lisegons */
 int fiPala = 0;
 int fiPilota = 0;
 pthread_t tid[MAX_THREADS];/* taula d'identificadors dels threads */
+int indPilo = 0;
 //int fiPilotes[MAXBALLS]; +1 d'una pilota¿?
 
 char strin[LONGMISS];			/* variable per a generar missatges de text */
@@ -279,10 +280,11 @@ void mostra_final(char *miss)
 }
 
 /* Si hi ha una col.lisió pilota-bloci esborra el bloc */
-void comprovar_bloc(int f, int c)
+int comprovar_bloc(int f, int c)
 {
 	int col;
 	char quin = win_quincar(f, c);
+	int newBall = 0;
 
 	if (quin == BLKCHAR || quin == FRNTCHAR) {
 		col = c;
@@ -296,10 +298,12 @@ void comprovar_bloc(int f, int c)
 			col--;
 		}
 
-		/* generar nova pilota ? */
-        
+		/* generar nova pilota ? TODO*/
+        if (quin == BLKCHAR) newBall=1;
+
 		nblocs--;
 	}
+	return newBall;
 }
 
 /* funcio per a calcular rudimentariament els efectes amb la pala */
@@ -352,22 +356,22 @@ float control_impacte2(int c_pil, float velc0) {
 
 /* funcio per moure la pilota: retorna un 1 si la pilota surt per la porteria,*/
 /* altrament retorna un 0 */
-void * mou_pilota(void * i_th)
+void * mou_pilota()
 {
 	int f_h, c_h;
 	char rh, rv, rd;
-	int fora = 0;
-	f_h = pos_f + vel_f;	/* posicio hipotetica de la pilota (entera) */
-	c_h = pos_c + vel_c;
-	rh = rv = rd = ' ';
+	int fora=0, newBall;
 	do{
-		
+		newBall = 0;
+		f_h = pos_f + vel_f;	/* posicio hipotetica de la pilota (entera) */
+		c_h = pos_c + vel_c;
+		rh = rv = rd = ' ';
 		if ((f_h != f_pil) || (c_h != c_pil)) {
 		/* si posicio hipotetica no coincideix amb la posicio actual */
 			if (f_h != f_pil) {	/* provar rebot vertical */
 				rv = win_quincar(f_h, c_pil);	/* veure si hi ha algun obstacle */
 				if (rv != ' ') {	/* si hi ha alguna cosa */
-					comprovar_bloc(f_h, c_pil);
+					newBall = comprovar_bloc(f_h, c_pil);
 					if (rv == '0')	/* col.lisió amb la paleta? */
 						//control_impacte();
 						vel_c = control_impacte2(c_pil, vel_c);
@@ -378,7 +382,7 @@ void * mou_pilota(void * i_th)
 			if (c_h != c_pil) {	/* provar rebot horitzontal */
 				rh = win_quincar(f_pil, c_h);	/* veure si hi ha algun obstacle */
 				if (rh != ' ') {	/* si hi ha algun obstacle */
-					comprovar_bloc(f_pil, c_h);
+					newBall = comprovar_bloc(f_pil, c_h);
 					/* TODO?: tractar la col.lisio lateral amb la paleta */
 					vel_c = -vel_c;	/* canvia sentit vel. horitzontal */
 					c_h = pos_c + vel_c;	/* actualitza posicio hipotetica */
@@ -387,7 +391,7 @@ void * mou_pilota(void * i_th)
 			if ((f_h != f_pil) && (c_h != c_pil)) {	/* provar rebot diagonal */
 				rd = win_quincar(f_h, c_h);
 				if (rd != ' ') {	/* si hi ha obstacle */
-					comprovar_bloc(f_h, c_h);
+					newBall = comprovar_bloc(f_h, c_h);
 					vel_f = -vel_f;
 					vel_c = -vel_c;	/* canvia sentit velocitats */
 					f_h = pos_f + vel_f;
@@ -410,16 +414,23 @@ void * mou_pilota(void * i_th)
 			pos_f += vel_f;
 			pos_c += vel_c;
 		}
+		
+		if(newBall && indPilo<MAX_THREADS){
+			pthread_create(&tid[indPilo], NULL, mou_pilota, NULL);
+			indPilo++;
+		}
 		fiPilota = (nblocs==0 || fora);
-	}while(!fiPilota && !fiPala);
+		win_retard(retard);
+		
+	}while(!fiPilota);
 
-	return((void *) (intptr_t) i_th);
+	return((void *) 1);
 	//return (nblocs==0 || fora);
 }
 
 /* funcio per moure la paleta segons la tecla premuda */
 /* retorna un boolea indicant si l'usuari vol acabar */
-void * mou_paleta(void * i_th)
+void * mou_paleta()
 {
 	int tecla;
 	do{
@@ -436,13 +447,17 @@ void * mou_paleta(void * i_th)
 					c_pal--;	/* actualitza posicio */
 					win_escricar(f_pal, c_pal, '0', INVERS);	/* escriure primer bloc */
 			}
-			if (tecla == TEC_RETURN)
+			if (tecla == TEC_RETURN){
 				fiPala = 1;	/* final per pulsacio RETURN */
+				fiPilota = 1;
+			}
+				
 			dirPaleta = tecla;	/* per a afectar al moviment de les pilotes */
 		}
+		win_retard(retard);
 	}while(!fiPala);
 
-	return((void *) (intptr_t) i_th);
+	return((void *) 1);
 	//return (result);//passar result a var global i crear bucle
 }
 
@@ -494,15 +509,19 @@ int main(int n_args, char *ll_args[])
 		win_retard(retard);	// retard del joc
 	} while (!fi1 && !fi2);*/
 	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
-	int n=0, t, t_total=0;
+	int n=0, t=0, t_total=0;
 	//tercer arg envia el num de thread 
 	
-	if (pthread_create(&tid[0], NULL, mou_paleta, (void *)(intptr_t) 0) == 0)n++;
-	if (pthread_create(&tid[1], NULL, mou_pilota, (void *)(intptr_t) 0) == 0)n++;
+	if (pthread_create(&tid[0], NULL, mou_paleta, NULL))n++;
+	if (pthread_create(&tid[1], NULL, mou_pilota, NULL))n++;
+	if (pthread_create(&tid[2], NULL, mou_pilota, NULL))n++;
 	printf("he creat %d threads, espero que acabin!\n\n",n);
 	
-	//while (!fiPilota && !fiPala);//Loop principal
-	
+	//Loop principal
+	do{
+		win_retard(retard);
+	}while (!fiPilota && !fiPala);
+
 	pthread_join(tid[0], (void **)&t);
 	t_total+=t;
 	pthread_join(tid[1], (void **)&t);

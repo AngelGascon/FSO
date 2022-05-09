@@ -105,7 +105,6 @@ int m_pal;				/* mida de la paleta */
 int f_pil[MAXBALLS], c_pil[MAXBALLS];		/* posicio de la pilota, en valor enter */
 float pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
 float vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
-int numPilotes = 0;
 int nblocs = 0;
 int dirPaleta = 0;
 int retard;			/* valor del retard de moviment, en mil.lisegons */
@@ -126,11 +125,7 @@ int carrega_configuracio(FILE * fit)
 
 	fscanf(fit, "%d %d %d\n", &n_fil, &n_col, &m_por);	/* camp de joc */
 	fscanf(fit, "%d %d %d\n", &f_pal, &c_pal, &m_pal);	/* paleta */
-	//fscanf(fit, "%f %f %f %f\n", &pos_f[0], &pos_c[0], &vel_f[0], &vel_c[0]);	/* pilota */
-	while (!feof(fit)) { 
-		fscanf(fit,"%f %f %f %f\n",&pos_f[numPilotes], &pos_c[numPilotes], &vel_f[numPilotes], &vel_c[numPilotes]);
-		numPilotes++;
-  	}
+	fscanf(fit, "%f %f %f %f\n", &pos_f[0], &pos_c[0], &vel_f[0], &vel_c[0]);	/* pilota */
 	if ((n_fil != 0) || (n_col != 0)) {	/* si no dimensions maximes */
 		if ((n_fil < MIN_FIL) || (n_fil > MAX_FIL) || (n_col < MIN_COL) || (n_col > MAX_COL))
 			ret = 1;
@@ -138,21 +133,12 @@ int carrega_configuracio(FILE * fit)
 			ret = 2;
         else if ((m_pal > n_col - 3) || (m_pal < 1) || (f_pal > n_fil-1) || (f_pal < 1) || (c_pal + m_pal > n_col -1 || c_pal < 1 ))
             ret = 3;
-		for(int i = 0; i < numPilotes; i++){
-			if ((pos_f[i] < 1) || (pos_f[i] >= n_fil - 3) || (pos_c[i] < 1)
-			 || (pos_c[i] > n_col - 1))	// tres files especials: línia d'estat, porteria i paleta
+		else if ((pos_f[0] < 1) || (pos_f[0] >= n_fil - 3) || (pos_c[0] < 1)
+			 || (pos_c[0] > n_col - 1))	/* tres files especials: línia d'estat, porteria i paleta */
 			ret = 4;
-		}
-		/*else if ((pos_f[0] < 1) || (pos_f[0] >= n_fil - 3) || (pos_c[0] < 1)
-			 || (pos_c[0] > n_col - 1))	// tres files especials: línia d'estat, porteria i paleta
-			ret = 4;*/
 	}
-	for(int i = 0; i < numPilotes; i++){
-		if ((vel_f[i] < -1.0) || (vel_f[i] > 1.0) || (vel_c[i] < -1.0) || (vel_c[i] > 1.0))
+	if ((vel_f[0] < -1.0) || (vel_f[0] > 1.0) || (vel_c[0] < -1.0) || (vel_c[0] > 1.0))
 		ret = 5;
-	}
-	/*if ((vel_f[0] < -1.0) || (vel_f[0] > 1.0) || (vel_c[0] < -1.0) || (vel_c[0] > 1.0))
-		ret = 5;*/
 
 	if (ret != 0) {		/* si ha detectat algun error */
 		fprintf(stderr, "Error en fitxer de configuracio:\n");
@@ -429,11 +415,8 @@ void * mou_pilota(void *index)
 			pos_c[ind] += vel_c[ind];
 		}
 		
-		if(newBall){
-			ind++;
-			if (ind<numPilotes){
-				pthread_create(&tid[ind], NULL, mou_pilota, (void*)(intptr_t) ind);//***//
-			}
+		if(newBall && ind<MAX_THREADS){
+			if(pthread_create(&tid[ind], NULL, mou_pilota, (void*)(intptr_t) ind) != 0) exit(1);
 		}
 		fiPilota = (nblocs==0 || fora);
 		win_retard(retard);
@@ -446,7 +429,7 @@ void * mou_pilota(void *index)
 
 /* funcio per moure la paleta segons la tecla premuda */
 /* retorna un boolea indicant si l'usuari vol acabar */
-void * mou_paleta(void * nul)
+void * mou_paleta()
 {
 	int tecla;
 	do{
@@ -482,8 +465,6 @@ int main(int n_args, char *ll_args[])
 {
 	int i;
 	FILE *fit_conf;
-	int sec = 0, min = 0;
-	char str_cont_temps[15];
 
 	if ((n_args != 2) && (n_args != 3)) {	/* si numero d'arguments incorrecte */
 		i = 0;
@@ -530,18 +511,13 @@ int main(int n_args, char *ll_args[])
 	int n=0, t=0, t_total=0;
 	//tercer arg envia el num de thread 
 	
-	if (pthread_create(&tid[9], NULL, mou_paleta, NULL))n++;
-	if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0))n++;
-	//printf("he creat %d threads, espero que acabin!\n\n",n);
+	if (pthread_create(&tid[0], NULL, mou_paleta, NULL))n++;
+	if (pthread_create(&tid[1], NULL, mou_pilota, (void*)(intptr_t) 0))n++;
+	printf("he creat %d threads, espero que acabin!\n\n",n);
 	
 	//Loop principal
 	do{
-		win_retard(1000);
-		sec++;
-		if(sec == 60) min++;
-		sec = sec % 60;
-		sprintf(str_cont_temps, "Time: %02d:%02d", min, sec);
-		win_escristr(str_cont_temps);
+		win_retard(retard);
 	}while (!fiPilota && !fiPala);
 
 	pthread_join(tid[0], (void **)&t);

@@ -114,7 +114,8 @@ int retard;			/* valor del retard de moviment, en mil.lisegons */
 int fiPala = 0;
 int fiPilota = 0;
 pthread_t tid[MAX_THREADS];/* taula d'identificadors dels threads */
-//int fiPilotes[MAXBALLS]; +1 d'una pilota¿?
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char strin[LONGMISS];			/* variable per a generar missatges de text */
 
@@ -378,6 +379,7 @@ void * mou_pilota(void *index)
 		f_h = pos_f[ind] + vel_f[ind];	/* posicio hipotetica de la pilota (entera) */
 		c_h = pos_c[ind] + vel_c[ind];
 		rh = rv = rd = ' ';
+		pthread_mutex_lock(&mutex);
 		if ((f_h != f_pil[ind]) || (c_h != c_pil[ind])) {
 		/* si posicio hipotetica no coincideix amb la posicio actual */
 			if (f_h != f_pil[ind]) {	/* provar rebot vertical */
@@ -427,6 +429,7 @@ void * mou_pilota(void *index)
 			pos_c[ind] += vel_c[ind];
 		}
 		fiPilota = (nblocs==0 || fora);
+		pthread_mutex_unlock(&mutex);
 		win_retard(retard);
 	}while(!fiPilota);
 
@@ -441,6 +444,7 @@ void * mou_paleta(void * nul)
 	int tecla;
 	do{
 		tecla = win_gettec();
+		pthread_mutex_lock(&mutex);
 		if (tecla != 0) {
 			if ((tecla == TEC_DRETA)
 				&& ((c_pal + m_pal) < n_col - 1)) {
@@ -460,6 +464,7 @@ void * mou_paleta(void * nul)
 				
 			dirPaleta = tecla;	/* per a afectar al moviment de les pilotes */
 		}
+		pthread_mutex_unlock(&mutex);
 		win_retard(retard);
 	}while(!fiPala);
 

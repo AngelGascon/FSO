@@ -106,7 +106,6 @@ int f_pil[MAXBALLS], c_pil[MAXBALLS];		/* posicio de la pilota, en valor enter *
 float pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
 float vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
 int numPilotes = 0;
-int novaPil[MAXBALLS];//Centinelles bloc B
 int nblocs = 0;
 int dirPaleta = 0;
 int retard;			/* valor del retard de moviment, en mil.lisegons */
@@ -294,10 +293,11 @@ void mostra_final(char *miss)
 }
 
 /* Si hi ha una col.lisió pilota-bloci esborra el bloc */
-void comprovar_bloc(int f, int c, int index)
+int comprovar_bloc(int f, int c)
 {
 	int col;
 	char quin = win_quincar(f, c);
+	int newBall = 0;
 
 	if (quin == BLKCHAR || quin == FRNTCHAR) {
 		col = c;
@@ -312,10 +312,11 @@ void comprovar_bloc(int f, int c, int index)
 		}
 
 		/* generar nova pilota ? TODO*/
-        if (quin == BLKCHAR) novaPil[index]=1;
+        if (quin == BLKCHAR) newBall=1;
 
 		nblocs--;
 	}
+	return newBall;
 }
 
 /* funcio per a calcular rudimentariament els efectes amb la pala */
@@ -373,8 +374,9 @@ void * mou_pilota(void *index)
 	int ind = (intptr_t) index;
 	int f_h, c_h;
 	char rh, rv, rd;
-	int fora=0;
+	int fora=0, newBall;
 	do{
+		newBall = 0;
 		f_h = pos_f[ind] + vel_f[ind];	/* posicio hipotetica de la pilota (entera) */
 		c_h = pos_c[ind] + vel_c[ind];
 		rh = rv = rd = ' ';
@@ -383,7 +385,7 @@ void * mou_pilota(void *index)
 			if (f_h != f_pil[ind]) {	/* provar rebot vertical */
 				rv = win_quincar(f_h, c_pil[ind]);	/* veure si hi ha algun obstacle */
 				if (rv != ' ') {	/* si hi ha alguna cosa */
-					comprovar_bloc(f_h, c_pil[ind], ind);
+					newBall = comprovar_bloc(f_h, c_pil[ind]);
 					if (rv == '0')	/* col.lisió amb la paleta? */
 						//control_impacte();
 						vel_c[ind] = control_impacte2(c_pil[ind], vel_c[ind]);
@@ -394,7 +396,7 @@ void * mou_pilota(void *index)
 			if (c_h != c_pil[ind]) {	/* provar rebot horitzontal */
 				rh = win_quincar(f_pil[ind], c_h);	/* veure si hi ha algun obstacle */
 				if (rh != ' ') {	/* si hi ha algun obstacle */
-					comprovar_bloc(f_pil[ind], c_h, ind);
+					newBall = comprovar_bloc(f_pil[ind], c_h);
 					/* TODO?: tractar la col.lisio lateral amb la paleta */
 					vel_c[ind] = -vel_c[ind];	/* canvia sentit vel. horitzontal */
 					c_h = pos_c[ind] + vel_c[ind];	/* actualitza posicio hipotetica */
@@ -403,7 +405,7 @@ void * mou_pilota(void *index)
 			if ((f_h != f_pil[ind]) && (c_h != c_pil[ind])) {	/* provar rebot diagonal */
 				rd = win_quincar(f_h, c_h);
 				if (rd != ' ') {	/* si hi ha obstacle */
-					comprovar_bloc(f_h, c_h, ind);
+					newBall = comprovar_bloc(f_h, c_h);
 					vel_f[ind] = -vel_f[ind];
 					vel_c[ind] = -vel_c[ind];	/* canvia sentit velocitats */
 					f_h = pos_f[ind] + vel_f[ind];
@@ -428,6 +430,20 @@ void * mou_pilota(void *index)
 		}
 		fiPilota = (nblocs==0 || fora);
 		win_retard(retard);
+		if(newBall){
+			ind++;
+			if (ind<numPilotes){
+				/* generar la pilota */
+				if (pos_f[ind] > n_fil - 1)
+					pos_f[ind] = n_fil - 1;	/* limita posicio inicial de la pilota */
+				if (pos_c[ind] > n_col - 1)
+					pos_c[ind] = n_col - 1;
+				f_pil[ind] = pos_f[ind];
+				c_pil[ind] = pos_c[ind];		/* dibuixar la pilota inicialment */
+				win_escricar(f_pil[ind], c_pil[ind], '1', INVERS);
+				pthread_create(&tid[ind], NULL, mou_pilota, (void*)(intptr_t) ind);//***//
+			}
+		}
 	}while(!fiPilota);
 
 	return((void *) 1);
@@ -519,37 +535,19 @@ int main(int n_args, char *ll_args[])
 	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
 	int n=0, t=0, t_total=0;
 	//tercer arg envia el num de thread 
-	for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
-	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
-	if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0));
+	
+	if (pthread_create(&tid[9], NULL, mou_paleta, NULL))n++;
+	if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0))n++;
 	//printf("he creat %d threads, espero que acabin!\n\n",n);
 	
 	//Loop principal
 	do{
-		t = 0;
-		for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
-		if(t){
-			novaPil[n]=0;
-			n++;
-			if (n<numPilotes){
-				/* generar la pilota */
-				if (pos_f[n] > n_fil - 1)
-					pos_f[n] = n_fil - 1;	/* limita posicio inicial de la pilota */
-				if (pos_c[n] > n_col - 1)
-					pos_c[n] = n_col - 1;
-				f_pil[n] = pos_f[n];
-				c_pil[n] = pos_c[n];		/* dibuixar la pilota inicialment */
-				win_escricar(f_pil[n], c_pil[n], '1', INVERS);
-				pthread_create(&tid[n], NULL, mou_pilota, (void*)(intptr_t) n);//***//
-			}
-		}
-
+		win_retard(1000);
 		sec++;
 		if(sec == 60) min++;
 		sec = sec % 60;
 		sprintf(str_cont_temps, "Time: %02d:%02d", min, sec);
 		win_escristr(str_cont_temps);
-		win_retard(1000);
 	}while (!fiPilota && !fiPala);
 
 	for(int i = 0; i<numPilotes; i++){

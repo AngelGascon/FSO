@@ -28,6 +28,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdint.h>
+#include "memoria.h"
 #include "winsuport.h"		/* incloure definicions de funcions propies */
 
 /* definicio de constants */
@@ -114,6 +115,8 @@ int retard;			/* valor del retard de moviment, en mil.lisegons */
 int fiPala = 0;
 int fiPilota = 0;
 pthread_t tid[MAX_THREADS];/* taula d'identificadors dels threads */
+pid_t tpid[MAX_THREADS]; /* taula d'identificadors dels processos fill */
+
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -513,19 +516,49 @@ int main(int n_args, char *ll_args[])
 	if (inicialitza_joc() != 0)	/* intenta crear el taulell de joc */
 		exit(4);	/* aborta si hi ha algun problema amb taulell */
 
-	/*int fi1, fi2;
-	do {
-//bucle principal del joc
-		fi1 = mou_paleta();
-		fi2=0;
-		fi2 = mou_pilota();
-		win_retard(retard);	// retard del joc
-	} while (!fi1 && !fi2);*/
-	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
 	int n=0, t=0, t_total=0;
-	//tercer arg envia el num de thread 
+
+	//_____________________________________________________________________
+	char a1[20], a2[20], a3[20], a4[20], a5[20];
+	//a1, a2, etc. s'han d'enviar a procés fill: mou_pala / mou_pilota -> nous .c
+	//Procés pala:
+	int id_f_pal, *p_f_pal, id_c_pal, *p_c_pal;		/* posicio del primer caracter de la paleta */
+	int id_m_pal, *p_m_pal;				/* mida de la paleta */
+	int id_dirPaleta, *p_dirPaleta;			/* TODO, direcció Paleta */	
+	int tecla = 0, id_tecla, *p_tecla; /*TODO, de moment està al main de pala s'ha de fer al main pare*/
+	//Mapeig a mem. compartida:
+	id_f_pal = ini_mem(sizeof(f_pal)); /* crear zona mem. compartida */
+	p_f_pal = map_mem(id_f_pal); /* obtenir adreça mem. compartida */
+	*p_f_pal = f_pal; /* inicialitza variable compartida */
+	sprintf(a1,"%i",id_f_pal); /* convertir id. memoria en string */
+	//////
+	id_c_pal = ini_mem(sizeof(c_pal)); /* crear zona mem. compartida */
+	p_c_pal = map_mem(id_c_pal); /* obtenir adreça mem. compartida */
+	*p_c_pal = c_pal; /* inicialitza variable compartida */
+	sprintf(a2,"%i",id_c_pal); /* convertir id. memoria en string */
+	//////
+	id_m_pal = ini_mem(sizeof(m_pal)); /* crear zona mem. compartida */
+	p_m_pal = map_mem(id_m_pal); /* obtenir adreça mem. compartida */
+	*p_m_pal = m_pal; /* inicialitza variable compartida */
+	sprintf(a3,"%i",id_m_pal); /* convertir id. memoria en string */
+	//////
+	id_dirPaleta = ini_mem(sizeof(dirPaleta)); /* crear zona mem. compartida */
+	p_dirPaleta = map_mem(id_dirPaleta); /* obtenir adreça mem. compartida */
+	*p_dirPaleta = dirPaleta; /* inicialitza variable compartida */
+	sprintf(a4,"%i",id_dirPaleta); /* convertir id. memoria en string */
+	//////
+	id_tecla = ini_mem(sizeof(tecla)); /* crear zona mem. compartida */
+	p_tecla = map_mem(id_tecla); /* obtenir adreça mem. compartida */
+	*p_tecla = tecla; /* inicialitza variable compartida */
+	sprintf(a5,"%i",id_tecla); /* convertir id. memoria en string */
+	// //	
+	tpid[0] = fork();//crea procés pala
+	// a1=fpal,a2=cpal,a3=mpal,a4=dirPaleta,a5=tecla, a6=n_col, a7=fiPala, a8=fiPilota, a9=retard
+	execlp("./pala", "pala", a1, a2, a3, a4, a5, (char*) 0);//(char*) 0 actua com a sentinella
+	
 	for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
-	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
+	//if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
+
 	if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0));
 	//printf("he creat %d threads, espero que acabin!\n\n",n);
 	

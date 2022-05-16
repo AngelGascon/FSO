@@ -9,7 +9,7 @@
 #define BLKCHAR 'B'
 #define FRNTCHAR 'A'
 
-int *f_pil, *c_pil, *c_pal, *m_pal, *novaPil, *nblocs, *n_fil;
+int *f_pil, *c_pil, *c_pal, *m_pal, *novaPil, *nblocs, n_fil, n_col;
 
 float control_impacte2(int c_pil, float velc0) {
 	int distApal;
@@ -66,13 +66,16 @@ int main(int n_args, char *ll_args[]) {
 	a9 -> novaPil
 	a10 -> nblocs
 	a11 -> n_fil
+	a12 -> n_col
+	a13 -> id_win
 	*/
 
 	// inicialitzar variables
-	int id_f_pil, id_c_pil, id_c_pal, id_m_pal, id_novaPil, id_nblocs, id_n_fil;
+	int id_f_pil, id_c_pil, id_c_pal, id_m_pal, id_novaPil, id_nblocs, id_n_fil, id_n_col, id_win;
 	float *pos_c, *pos_f, *vel_f, *vel_c;
 	float id_pos_c, id_pos_f, id_vel_f, id_vel_c;
 
+	void *p_win;
 	
 	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -97,8 +100,8 @@ int main(int n_args, char *ll_args[]) {
 
 	id_vel_c = atoi(ll_args[6]);
 	vel_c = map_mem(id_vel_c);
+	
 	//*c_pal, *m_pal, *novaPil, *nblocs, *n_fil;
-
 	id_c_pal = atoi(ll_args[7]);
 	c_pal = map_mem(id_c_pal);
 
@@ -111,8 +114,17 @@ int main(int n_args, char *ll_args[]) {
 	id_nblocs = atoi(ll_args[10]);
 	nblocs = map_mem(id_nblocs);
 
-	id_n_fil = atoi(ll_args[11]);
-	n_fil = map_mem(id_n_fil);
+	n_fil = atoi(ll_args[11]);
+	//n_fil = map_mem(id_n_fil);
+
+	//n_col, id_win
+	n_col = atoi(ll_args[12]);
+	//n_col = map_mem(id_n_col);
+
+	id_win = atoi(ll_args[13]);
+    p_win = map_mem(id_win);
+
+	win_set(p_win,n_fil,n_col);
 
 	do{
 		f_h = *pos_f + *vel_f;	/* posicio hipotetica de la pilota (entera) */
@@ -158,7 +170,7 @@ int main(int n_args, char *ll_args[]) {
 				*pos_c += *vel_c;
 				*f_pil = f_h;
 				*c_pil = c_h;	/* actualitza posicio actual */
-				if (*f_pil != *n_fil - 1)	/* si no surt del taulell, */
+				if (*f_pil != n_fil - 1)	/* si no surt del taulell, */
 					win_escricar(*f_pil, *c_pil, '1', INVERS);	/* imprimeix pilota */
 				else
 					fora = 1;

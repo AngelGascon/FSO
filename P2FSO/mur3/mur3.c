@@ -413,9 +413,9 @@ int main(int n_args, char *ll_args[])
 		exit(4);	/* aborta si hi ha algun problema amb taulell */
 
 	//_____________________________________________________________________
-	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20];
-	int id_f_pil, id_c_pil, id_c_pal, id_m_pal, id_novaPil, id_nblocs, id_n_fil;
-	int *p_f_pil, *p_c_pil, *p_c_pal, *p_m_pal, *p_novaPil, *p_nblocs, *p_n_fil;
+	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20], a12[20], a13[20];
+	int id_f_pil, id_c_pil, id_c_pal, id_m_pal, id_novaPil, id_nblocs, id_n_fil, id_n_col;
+	int *p_f_pil, *p_c_pil, *p_c_pal, *p_m_pal, *p_novaPil, *p_nblocs, *p_n_fil, *p_n_col;
 	float id_pos_c, id_pos_f, id_vel_f, id_vel_c;
 	float *p_pos_c, *p_pos_f, *p_vel_f, *p_vel_c;
 
@@ -473,8 +473,21 @@ int main(int n_args, char *ll_args[])
 	id_n_fil = ini_mem(sizeof(int)); /* crear zona mem. compartida */
 	p_n_fil = map_mem(id_n_fil); /* obtenir adreça mem. compartida */
 	*p_n_fil = n_fil; /* inicialitza variable compartida */
-	sprintf(a11,"%i",id_n_fil); /* convertir id. memoria en string */
+	sprintf(a11,"%i",n_fil); /* convertir id. memoria en string */
+	//////
+	id_n_col = ini_mem(sizeof(int)); /* crear zona mem. compartida */
+	p_n_col = map_mem(id_n_col); /* obtenir adreça mem. compartida */
+	*p_n_col = n_col; /* inicialitza variable compartida */
+	sprintf(a12,"%i",n_col); /* convertir id. memoria en string */
 
+	sprintf(a13,"%i",id_win);
+
+
+	int n=0, t=0, t_total=0;
+	//tercer arg envia el num de thread 
+	for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
+	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
+	
 	tpid[0] = fork();//crea procés pilota TODO Warning implicit declaration of function
 	
 	/*
@@ -489,14 +502,13 @@ int main(int n_args, char *ll_args[])
 	a9 -> novaPil
 	a10 -> nblocs
 	a11 -> n_fil
+	a12 -> n_col
+	a13 -> id_win
 	*/
-	execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, (char*) 0);//(char*) 0 actua com a sentinella
+	execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
 
 	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
-	int n=0, t=0, t_total=0;
-	//tercer arg envia el num de thread 
-	for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
-	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
+	
 	//if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0));
 	//printf("he creat %d threads, espero que acabin!\n\n",n);
 	
@@ -504,7 +516,7 @@ int main(int n_args, char *ll_args[])
 	do{
 		t = 0;
 		for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
-		//win_retard(1000);
+		win_retard(1000);
 		win_update();
 		if(t){
 			novaPil[n]=0;

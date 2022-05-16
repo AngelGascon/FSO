@@ -104,8 +104,8 @@ int m_por;			/* mida de la porteria (en caracters) */
 int f_pal, c_pal;		/* posicio del primer caracter de la paleta */
 int m_pal;				/* mida de la paleta */
 int f_pil[MAXBALLS], c_pil[MAXBALLS];		/* posicio de la pilota, en valor enter */
-float pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
-float vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
+int pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
+int vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
 int numPilotes = 0;
 int novaPil[MAXBALLS];//Centinelles bloc B
 int nblocs = 0;
@@ -114,10 +114,8 @@ int retard;			/* valor del retard de moviment, en mil.lisegons */
 /**Var locals -> globals**/
 int fiPala = 0;
 int fiPilota = 0;
-int id_win;
-void* p_win;
 
-int xocBlock[MAXBALLS];	// taula booleana per guardar els valors de si s'ha xocat o no
+int id_win;
 
 pthread_t tid[MAX_THREADS];/* taula d'identificadors dels threads */
 pid_t tpid[MAX_THREADS]; /* taula d'identificadors dels processos fill */
@@ -132,12 +130,23 @@ char strin[LONGMISS];			/* variable per a generar missatges de text */
 int carrega_configuracio(FILE * fit)
 {
 	int ret = 0;
+	float *p_pos_c, *p_pos_f, *p_vel_f, *p_vel_c;
 
 	fscanf(fit, "%d %d %d\n", &n_fil, &n_col, &m_por);	/* camp de joc */
 	fscanf(fit, "%d %d %d\n", &f_pal, &c_pal, &m_pal);	/* paleta */
 	//fscanf(fit, "%f %f %f %f\n", &pos_f[0], &pos_c[0], &vel_f[0], &vel_c[0]);	/* pilota */
-	while (!feof(fit)) { 
-		fscanf(fit,"%f %f %f %f\n",&pos_f[numPilotes], &pos_c[numPilotes], &vel_f[numPilotes], &vel_c[numPilotes]);
+	while (!feof(fit)) {
+		//TODO mem comp
+		pos_f[numPilotes] = ini_mem(sizeof(float));
+		pos_c[numPilotes] = ini_mem(sizeof(float));
+		vel_f[numPilotes] = ini_mem(sizeof(float));
+		vel_c[numPilotes] = ini_mem(sizeof(float));
+		p_pos_f = map_mem(pos_f[numPilotes]);
+		p_pos_c = map_mem(pos_c[numPilotes]);
+		p_vel_f = map_mem(vel_f[numPilotes]);
+		p_vel_c = map_mem(vel_c[numPilotes]);
+		fscanf(fit,"%f %f %f %f\n",p_pos_f, p_pos_c, p_vel_f, p_vel_c);
+		//fscanf(fit,"%f %f %f %f\n",&pos_f[numPilotes], &pos_c[numPilotes], &vel_f[numPilotes], &vel_c[numPilotes]);
 		numPilotes++;
   	}
 	if ((n_fil != 0) || (n_col != 0)) {	/* si no dimensions maximes */
@@ -147,17 +156,26 @@ int carrega_configuracio(FILE * fit)
 			ret = 2;
         else if ((m_pal > n_col - 3) || (m_pal < 1) || (f_pal > n_fil-1) || (f_pal < 1) || (c_pal + m_pal > n_col -1 || c_pal < 1 ))
             ret = 3;
-		for(int i = 0; i < numPilotes; i++){
+		for(int i = 0; i < numPilotes; i++){//TODO
+			p_pos_f = map_mem(pos_f[i]);
+			p_pos_c = map_mem(pos_c[i]);
+			if ((*p_pos_f < 1) || (*p_pos_f >= n_fil - 3) || (*p_pos_c < 1)
+			 || (*p_pos_c > n_col - 1))	// tres files especials: línia d'estat, porteria i paleta
+			ret = 4;
+		}
+		/*for(int i = 0; i < numPilotes; i++){
 			if ((pos_f[i] < 1) || (pos_f[i] >= n_fil - 3) || (pos_c[i] < 1)
 			 || (pos_c[i] > n_col - 1))	// tres files especials: línia d'estat, porteria i paleta
 			ret = 4;
-		}
+		}*/
 		/*else if ((pos_f[0] < 1) || (pos_f[0] >= n_fil - 3) || (pos_c[0] < 1)
 			 || (pos_c[0] > n_col - 1))	// tres files especials: línia d'estat, porteria i paleta
 			ret = 4;*/
 	}
 	for(int i = 0; i < numPilotes; i++){
-		if ((vel_f[i] < -1.0) || (vel_f[i] > 1.0) || (vel_c[i] < -1.0) || (vel_c[i] > 1.0))
+		p_vel_f = map_mem(vel_f[i]);
+		p_vel_c = map_mem(vel_c[i]);
+		if ((*p_vel_f < -1.0) || (*p_vel_f > 1.0) || (*p_vel_c < -1.0) || (*p_vel_c > 1.0))
 		ret = 5;
 	}
 	/*if ((vel_f[0] < -1.0) || (vel_f[0] > 1.0) || (vel_c[0] < -1.0) || (vel_c[0] > 1.0))
@@ -182,14 +200,14 @@ int carrega_configuracio(FILE * fit)
             break;
 		case 4:
 			fprintf(stderr, "\tposicio de la pilota incorrecta:\n");
-			fprintf(stderr, "\tpos_f= %.2f \tpos_c= %.2f\n", pos_f[0],
-				pos_c[0]);
+			fprintf(stderr, "\tpos_f= %.2f \tpos_c= %.2f\n", *p_pos_f,
+				*p_pos_c);
 			break;
 		case 5:
 			fprintf(stderr,
 				"\tvelocitat de la pilota incorrecta:\n");
-			fprintf(stderr, "\tvel_f= %.2f \tvel_c= %.2f\n", vel_f[0],
-				vel_c[0]);
+			fprintf(stderr, "\tvel_f= %.2f \tvel_c= %.2f\n", *p_vel_f,
+				*p_vel_c);
 			break;
 		}
 	}
@@ -204,11 +222,9 @@ int inicialitza_joc(void)
 	int i, retwin;
 	int i_port, f_port;	/* inici i final de porteria */
 	int c, nb, offset;
+	void* p_win;
 
 	retwin = win_ini(&n_fil, &n_col, '+', INVERS);	/* intenta crear taulell */
-	id_win = ini_mem(retwin);
-	p_win = map_mem(id_win);
-	win_set(p_win, n_fil, n_col);
 
 	if (retwin < 0) {	/* si no pot crear l'entorn de joc amb les curses */
 		fprintf(stderr, "Error en la creacio del taulell de joc:\t");
@@ -231,6 +247,10 @@ int inicialitza_joc(void)
 		return (retwin);
 	}
 
+	id_win = ini_mem(retwin);
+	p_win = map_mem(id_win);
+	win_set(p_win, n_fil, n_col);
+
 	if (m_por > n_col - 2)
 		m_por = n_col - 2;	/* limita valor de la porteria */
 	if (m_por == 0)
@@ -246,15 +266,32 @@ int inicialitza_joc(void)
 	for (i = 0; i < m_pal; i++)	/* dibuixar paleta inicial */
 		win_escricar(f_pal, c_pal + i, '0', INVERS);
 
-	/* generar la pilota */
+	int *p_f_pil, *p_c_pil;
+	float *p_pos_c, *p_pos_f;
+	p_pos_f = map_mem(pos_f[0]);
+	p_pos_c = map_mem(pos_c[0]);
+	if (*p_pos_f > n_fil - 1)
+		*p_pos_f = n_fil - 1;
+	if (*p_pos_c > n_col - 1)
+		*p_pos_c = n_col - 1;
+	
+	f_pil[0] = ini_mem(sizeof(int));
+	c_pil[0] = ini_mem(sizeof(int));
+	p_f_pil = map_mem(f_pil[0]);
+	p_c_pil = map_mem(c_pil[0]);
+
+	*p_f_pil = *p_pos_f;
+	*p_c_pil = *p_pos_c;
+	win_escricar(*p_f_pil, *p_c_pil, '1', INVERS);
+	/* generar la pilota //TODO mem comp
 	if (pos_f[0] > n_fil - 1)
-		pos_f[0] = n_fil - 1;	/* limita posicio inicial de la pilota */
+		pos_f[0] = n_fil - 1;
 	if (pos_c[0] > n_col - 1)
 		pos_c[0] = n_col - 1;
 	f_pil[0] = pos_f[0];
-	c_pil[0] = pos_c[0];		/* dibuixar la pilota inicialment */
+	c_pil[0] = pos_c[0];		
 	win_escricar(f_pil[0], c_pil[0], '1', INVERS);
-
+	*/
 	// generar els blocs 
 	nb = 0;
 	nblocs = n_col / (BLKSIZE + BLKGAP) - 1;
@@ -412,99 +449,52 @@ int main(int n_args, char *ll_args[])
 	if (inicialitza_joc() != 0)	/* intenta crear el taulell de joc */
 		exit(4);	/* aborta si hi ha algun problema amb taulell */
 
+	//for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
+	int n=0, t=0, t_total=0;
 	//_____________________________________________________________________
 	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20], a12[20], a13[20];
-	int id_f_pil, id_c_pil, id_c_pal, id_m_pal, id_novaPil, id_nblocs, id_n_fil, id_n_col;
-	int *p_f_pil, *p_c_pil, *p_c_pal, *p_m_pal, *p_novaPil, *p_nblocs, *p_n_fil, *p_n_col;
-	float id_pos_c, id_pos_f, id_vel_f, id_vel_c;
-	float *p_pos_c, *p_pos_f, *p_vel_f, *p_vel_c;
+	int *p_novaPil;
+
+	/*
+	int f_pil[MAXBALLS], c_pil[MAXBALLS];
+	float pos_f[MAXBALLS], pos_c[MAXBALLS];
+	float vel_f[MAXBALLS], vel_c[MAXBALLS];
+	int novaPil[MAXBALLS];//Centinelles bloc B
+	*/
 
 	//Mapeig a mem. compartida:
-	id_f_pil = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_f_pil = map_mem(id_f_pil); /* obtenir adreça mem. compartida */
-	*p_f_pil = f_pil[0]; /* inicialitza variable compartida */
-	sprintf(a1,"%i",id_f_pil); /* convertir id. memoria en string */
+	sprintf(a1,"%i", f_pil[0]);
 	//////
-	id_c_pil = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_c_pil = map_mem(id_c_pil); /* obtenir adreça mem. compartida */
-	*p_c_pil = c_pil[0]; /* inicialitza variable compartida */
-	sprintf(a2,"%i",id_c_pil); /* convertir id. memoria en string */
+	sprintf(a2,"%i", c_pil[0]);
 	//////	
-	id_pos_c = ini_mem(sizeof(float)); /* crear zona mem. compartida */
-	p_pos_c = map_mem(id_pos_c); /* obtenir adreça mem. compartida */
-	*p_pos_c = pos_c[0]; /* inicialitza variable compartida */
-	sprintf(a3,"%f",id_pos_c); /* convertir id. memoria en string */
+	sprintf(a3,"%i", pos_c[0]);
 	//////
-	id_pos_f = ini_mem(sizeof(float)); /* crear zona mem. compartida */
-	p_pos_f = map_mem(id_pos_f); /* obtenir adreça mem. compartida */
-	*p_pos_f = pos_f[0]; /* inicialitza variable compartida */
-	sprintf(a4,"%f",id_pos_f); /* convertir id. memoria en string */
+	sprintf(a4,"%i", pos_f[0]);
 	//////
-	id_vel_f = ini_mem(sizeof(float)); /* crear zona mem. compartida */
-	p_vel_f = map_mem(id_vel_f); /* obtenir adreça mem. compartida */
-	*p_vel_f = vel_f[0]; /* inicialitza variable compartida */
-	sprintf(a5,"%f",id_vel_f); /* convertir id. memoria en string */
+	sprintf(a5,"%i", vel_f[0]);
 	//////
-	id_vel_c = ini_mem(sizeof(float)); /* crear zona mem. compartida */
-	p_vel_c = map_mem(id_vel_c); /* obtenir adreça mem. compartida */
-	*p_vel_c = vel_c[0]; /* inicialitza variable compartida */
-	sprintf(a6,"%f",id_vel_c); /* convertir id. memoria en string */
+	sprintf(a6,"%i", vel_c[0]);
 	//////
-	id_c_pal = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_c_pal = map_mem(id_c_pal); /* obtenir adreça mem. compartida */
-	*p_c_pal = c_pal; /* inicialitza variable compartida */
-	sprintf(a7,"%i",id_c_pal); /* convertir id. memoria en string */
+	sprintf(a7,"%i", c_pal);
 	//////
-	id_m_pal = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_m_pal = map_mem(id_m_pal); /* obtenir adreça mem. compartida */
-	*p_m_pal = m_pal; /* inicialitza variable compartida */
-	sprintf(a8,"%i",id_m_pal); /* convertir id. memoria en string */
-	//////
-	id_novaPil = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_novaPil = map_mem(id_m_pal); /* obtenir adreça mem. compartida */
-	*p_novaPil = novaPil[0]; /* inicialitza variable compartida */
-	sprintf(a9,"%i",id_novaPil); /* convertir id. memoria en string */
-	//////
-	id_nblocs = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_nblocs = map_mem(id_nblocs); /* obtenir adreça mem. compartida */
-	*p_nblocs = nblocs; /* inicialitza variable compartida */
-	sprintf(a10,"%i",id_nblocs); /* convertir id. memoria en string */
-	//////
-	id_n_fil = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_n_fil = map_mem(id_n_fil); /* obtenir adreça mem. compartida */
-	*p_n_fil = n_fil; /* inicialitza variable compartida */
+	sprintf(a8,"%i", m_pal);
+	
+	novaPil[0] = ini_mem(sizeof(int));
+	p_novaPil = map_mem(novaPil[0]);
+	*p_novaPil = 0;
+	sprintf(a9,"%i",novaPil[0]);
+
+	sprintf(a10,"%i",nblocs); /* convertir id. memoria en string */
 	sprintf(a11,"%i",n_fil); /* convertir id. memoria en string */
-	//////
-	id_n_col = ini_mem(sizeof(int)); /* crear zona mem. compartida */
-	p_n_col = map_mem(id_n_col); /* obtenir adreça mem. compartida */
-	*p_n_col = n_col; /* inicialitza variable compartida */
 	sprintf(a12,"%i",n_col); /* convertir id. memoria en string */
 
 	sprintf(a13,"%i",id_win);
 
 
-	int n=0, t=0, t_total=0;
 	//tercer arg envia el num de thread 
-	for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
 	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
 	
 	tpid[0] = fork();//crea procés pilota TODO Warning implicit declaration of function
-	
-	/*
-	a1 -> f_pil
-	a2 -> c_pil
-	a3 -> pos_c
-	a4 -> pos_f
-	a5 -> vel_f
-	a6 -> vel_c
-	a7 -> c_pal
-	a8 -> m_pal
-	a9 -> novaPil
-	a10 -> nblocs
-	a11 -> n_fil
-	a12 -> n_col
-	a13 -> id_win
-	*/
 	execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
 
 	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
@@ -515,24 +505,23 @@ int main(int n_args, char *ll_args[])
 	//Loop principal
 	do{
 		t = 0;
-		for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
-		win_retard(1000);
+		//for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
+		win_retard(retard);
 		win_update();
-		if(t){
+		/*if(t){
 			novaPil[n]=0;
 			n++;
 			if (n<numPilotes){
-				/* generar la pilota */
 				if (pos_f[n] > n_fil - 1)
-					pos_f[n] = n_fil - 1;	/* limita posicio inicial de la pilota */
+					pos_f[n] = n_fil - 1;
 				if (pos_c[n] > n_col - 1)
 					pos_c[n] = n_col - 1;
 				f_pil[n] = pos_f[n];
-				c_pil[n] = pos_c[n];		/* dibuixar la pilota inicialment */
+				c_pil[n] = pos_c[n];
 				//win_escricar(f_pil[n], c_pil[n], '1', INVERS);
-				//pthread_create(&tid[n], NULL, mou_pilota, (void*)(intptr_t) n);//***//
+				//pthread_create(&tid[n], NULL, mou_pilota, (void*)(intptr_t) n);
 			}
-		}
+		}*/
 
 		sec++;
 		if(sec == 60) min++;

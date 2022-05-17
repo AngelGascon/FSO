@@ -72,7 +72,7 @@ int main(int n_args, char *ll_args[]) {
 	*/
 
 	int id_f_pil, id_c_pil, id_novaPil , id_win;
-	int *f_pil, *c_pil;
+	int *f_pil, *c_pil, *fiPilota;
 	int id_pos_c, id_pos_f, id_vel_f, id_vel_c;
 	float *pos_c, *pos_f, *vel_f, *vel_c;
 	void* p_win;
@@ -107,6 +107,8 @@ int main(int n_args, char *ll_args[]) {
 
 	id_win = atoi(ll_args[13]);
     p_win = map_mem(id_win);
+
+	fiPilota = map_mem(atoi(ll_args[14]));
 
 	//fprintf(stderr,"inici 2 ->%i %i %i %i %i %i %i %i %i %i %i %i %i", id_f_pil, id_c_pil, id_pos_c, id_pos_f, id_vel_f, id_vel_c, c_pal, m_pal, id_novaPil, nblocs, n_fil, n_col, id_win);
 	win_set(p_win,n_fil,n_col);
@@ -169,11 +171,12 @@ int main(int n_args, char *ll_args[]) {
 			*pos_f += *vel_f;
 			*pos_c += *vel_c;
 		}
-		fiPilota = (nblocs==0 || fora);
 		//pthread_mutex_unlock(&mutex);
 		win_retard(100);
 		win_update();
-	}while(1);
+	}while(!(nblocs==0) && !fora);
+
+	*fiPilota = *fiPilota+1;
 
 	return(1);
 }

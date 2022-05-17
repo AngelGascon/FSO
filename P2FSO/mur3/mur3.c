@@ -108,14 +108,14 @@ int m_pal;				/* mida de la paleta */
 int f_pil[MAXBALLS], c_pil[MAXBALLS];		/* posicio de la pilota, en valor enter */
 int pos_f[MAXBALLS], pos_c[MAXBALLS];		/* posicio de la pilota, en valor real */
 int vel_f[MAXBALLS], vel_c[MAXBALLS];		/* velocitat de la pilota, en valor real */
-int numPilotes = 0;
+int numPilotes = 0; //controla el num total de pilotes possibles, s'inicialitza al llegir el fitxer params.txt
 int novaPil[MAXBALLS];//Centinelles bloc B
 int nblocs = 0;
 int dirPaleta = 0;
 int retard;			/* valor del retard de moviment, en mil.lisegons */
 /**Var locals -> globals**/
 int fiPala = 0;
-int fiPilota = 0;
+int fiPilota;
 
 int id_win;
 
@@ -399,7 +399,6 @@ void * mou_paleta(void * nul)
 			}
 			if (tecla == TEC_RETURN){
 				fiPala = 1;	/* final per pulsacio RETURN */
-				fiPilota = 1;
 			}
 				
 			dirPaleta = tecla;	/* per a afectar al moviment de les pilotes */
@@ -454,11 +453,9 @@ int main(int n_args, char *ll_args[])
 	if (inicialitza_joc() != 0)	/* intenta crear el taulell de joc */
 		exit(4);	/* aborta si hi ha algun problema amb taulell */
 
-	//for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
-	int t=0, t_total=0;
 	//_____________________________________________________________________
-	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20], a12[20], a13[20];
-	int *p_novaPil;
+	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20], a12[20], a13[20], a14[20];
+	int *p_novaPil, *p_fiPilota, fiPilota_total=0;
 	/*
 	int f_pil[MAXBALLS], c_pil[MAXBALLS];
 	float pos_f[MAXBALLS], pos_c[MAXBALLS];
@@ -474,9 +471,9 @@ int main(int n_args, char *ll_args[])
 	sprintf(a6,"%i", vel_c[0]);
 	sprintf(a7,"%i", c_pal);
 	sprintf(a8,"%i", m_pal);
-	for(int i=0; i<MAXBALLS;i++){
+	for(int i=0; i<numPilotes;i++){
 		novaPil[i] = ini_mem(sizeof(int));
-		p_novaPil = map_mem(novaPil[0]);
+		p_novaPil = map_mem(novaPil[i]);
 		*p_novaPil = 0;
 	}
 	sprintf(a9,"%i",novaPil[0]);
@@ -484,23 +481,27 @@ int main(int n_args, char *ll_args[])
 	sprintf(a11,"%i",n_fil);
 	sprintf(a12,"%i",n_col);
 	sprintf(a13,"%i",id_win);
+	fiPilota = ini_mem(sizeof(int));
+	p_fiPilota = map_mem(fiPilota);
+	*p_fiPilota = 0;
 
+	sprintf(a14,"%i",fiPilota);
 	//fprintf(stderr,"inici %i %i %i %i %i %i %i %i %i %i %i %i %i////", f_pil[0], c_pil[0], pos_c[0], pos_f[0], vel_f[0], vel_c[0], c_pal, m_pal, novaPil[0], nblocs, n_fil, n_col, id_win);
 	if (pthread_create(&pala_jugador, NULL, mou_paleta, NULL));
 	processosPilota[0] = fork();
 	if(processosPilota[0] == (pid_t) 0)
     {
-		execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
+		execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, (char*) 0);//(char*) 0 actua com a sentinella
 	}
 	
 	int *p_f_pil, *p_c_pil;
 	float *p_pos_c, *p_pos_f, *p_vel_f, *p_vel_c;
-	int indNovaPil = 0, n = 1;
+	int indNovaPil = 0, n = 1, t;
 	//Loop principal
 	do{
 		t = 0;
 		//for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
-		for(int i=0; i<MAXBALLS;i++){
+		for(int i=0; i<numPilotes;i++){
 			p_novaPil = map_mem(novaPil[i]);
 			t = t || *p_novaPil;
 			indNovaPil=i;
@@ -512,10 +513,8 @@ int main(int n_args, char *ll_args[])
 			p_novaPil = map_mem(novaPil[indNovaPil]);
 			*p_novaPil = 0;
 			if (n<numPilotes){
-				fprintf(stderr,"inici");
 				p_pos_f = map_mem(pos_f[n]);
 				p_pos_c = map_mem(pos_c[n]);
-				fprintf(stderr,"inici1");
 				p_vel_f = map_mem(vel_f[n]);
 				p_vel_c = map_mem(vel_c[n]);
 				p_f_pil = map_mem(f_pil[n]);
@@ -535,25 +534,26 @@ int main(int n_args, char *ll_args[])
 				sprintf(a5,"%i", vel_f[n]);
 				sprintf(a6,"%i", vel_c[n]);
 				sprintf(a9,"%i",novaPil[n]);
-				fprintf(stderr,"inici2");
 				processosPilota[n] = fork();
 				if(processosPilota[n] == (pid_t) 0)
 				{
-					execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
+					execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, (char*) 0);//(char*) 0 actua com a sentinella
 				}
+				n++;
 			}
-			n++;
 		}
 		sec++;
 		if(sec == 60) min++;
 		sec = sec % 60;
 		sprintf(str_cont_temps, "Time: %02d:%02d", min, sec);
 		win_escristr(str_cont_temps);
-	}while (!fiPilota && !fiPala);
+		if(*p_fiPilota==n) fiPilota_total = 1;
+		
+	}while (!fiPilota_total && !fiPala);
 
-	pthread_join(pala_jugador, (void **)&t);
-	t_total+=t;
-	printf("Entre tots els threads han escrit %d lletres.\n",t_total);
+	fprintf(stderr, "fi");
+
+	pthread_join(pala_jugador, NULL);
 
 	if (nblocs == 0)
 		mostra_final("YOU WIN !");

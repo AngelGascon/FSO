@@ -47,7 +47,7 @@ void comprovar_bloc(int f, int c)
 		}
 
 		/* generar nova pilota ? TODO*/
-        //if (quin == BLKCHAR) *novaPil=1;
+        if (quin == BLKCHAR) *novaPil=1;
 
 		nblocs--;
 	}
@@ -108,7 +108,7 @@ int main(int n_args, char *ll_args[]) {
 	id_win = atoi(ll_args[13]);
     p_win = map_mem(id_win);
 
-
+	//fprintf(stderr,"inici 2 ->%i %i %i %i %i %i %i %i %i %i %i %i %i", id_f_pil, id_c_pil, id_pos_c, id_pos_f, id_vel_f, id_vel_c, c_pal, m_pal, id_novaPil, nblocs, n_fil, n_col, id_win);
 	win_set(p_win,n_fil,n_col);
 
 	int f_h, c_h;
@@ -118,6 +118,7 @@ int main(int n_args, char *ll_args[]) {
 		f_h = *pos_f + *vel_f;	/* posicio hipotetica de la pilota (entera) */
 		c_h = *pos_c + *vel_c;
 		rh = rv = rd = ' ';
+		//fprintf(stderr,"inici %i %i", f_h, c_h);
 		//pthread_mutex_lock(&mutex);
 		if ((f_h != *f_pil) || (c_h != *c_pil)) {
 		/* si posicio hipotetica no coincideix amb la posicio actual */
@@ -158,8 +159,9 @@ int main(int n_args, char *ll_args[]) {
 				*pos_c += *vel_c;
 				*f_pil = f_h;
 				*c_pil = c_h;	/* actualitza posicio actual */
-				if (*f_pil != n_fil - 1)	/* si no surt del taulell, */
+				if (*f_pil != n_fil - 1){
 					win_escricar(*f_pil, *c_pil, '1', INVERS);	/* imprimeix pilota */
+				}	/* si no surt del taulell, */
 				else
 					fora = 1;
 			}
@@ -167,7 +169,7 @@ int main(int n_args, char *ll_args[]) {
 			*pos_f += *vel_f;
 			*pos_c += *vel_c;
 		}
-		//fiPilota = (nblocs==0 || fora);
+		fiPilota = (nblocs==0 || fora);
 		//pthread_mutex_unlock(&mutex);
 		win_retard(100);
 		win_update();

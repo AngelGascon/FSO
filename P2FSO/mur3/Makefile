@@ -8,7 +8,7 @@ mur2 : mur2.c winsuport.o winsuport.h
 	gcc -Wall mur2.c winsuport.o -o mur2 -lcurses -lpthread
 
 mur3 : mur3.c winsuport2.o winsuport2.h memoria.o memoria.h
-	gcc -Wall mur3.c winsuport2.o memoria.o -o mur3 -lcurses -lpthread
+	gcc -Wall -g mur3.c winsuport2.o memoria.o -o mur3 -lcurses -lpthread
 
 winsuport.o : winsuport2.c winsuport2.h
 	gcc -Wall -c winsuport2.c -o winsuport2.o
@@ -17,8 +17,8 @@ memoria.o : memoria.c memoria.h
 	gcc -c -Wall memoria.c -o memoria.o
 
 pilota : pilota.c winsuport2.o winsuport2.h memoria.o memoria.h
-	gcc -Wall pilota.c winsuport2.o memoria.o -o pilota -lcurses -lpthread
+	gcc -Wall -g pilota.c winsuport2.o memoria.o -ggdb -o pilota -lcurses -lpthread
 
 clean : 
-	rm -f winsuport.o mur0 mur1 mur2
+	rm -f winsuport.o mur0 mur1 mur2 mur3 pilota
 

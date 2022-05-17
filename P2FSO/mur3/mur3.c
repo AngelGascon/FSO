@@ -21,8 +21,10 @@
 /*                                                                           */
 /*****************************************************************************/
 
-//#include <stdint.h>		/* intptr_t for 64bits machines */
-
+#include <stdint.h>		/* intptr_t for 64bits machines */
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <stdio.h>		/* incloure definicions de funcions estandard */
 #include <stdlib.h>
 #include <string.h>
@@ -117,8 +119,7 @@ int fiPilota = 0;
 
 int id_win;
 
-pthread_t tid[MAX_THREADS];/* taula d'identificadors dels threads */
-pid_t tpid[MAX_THREADS]; /* taula d'identificadors dels processos fill */
+pid_t processosPilota[MAXBALLS];
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -275,8 +276,11 @@ int inicialitza_joc(void)
 	if (*p_pos_c > n_col - 1)
 		*p_pos_c = n_col - 1;
 	
-	f_pil[0] = ini_mem(sizeof(int));
-	c_pil[0] = ini_mem(sizeof(int));
+	for (int i = 0; i<numPilotes; i++){
+		f_pil[i] = ini_mem(sizeof(int));
+		c_pil[i] = ini_mem(sizeof(int));
+	}
+	
 	p_f_pil = map_mem(f_pil[0]);
 	p_c_pil = map_mem(c_pil[0]);
 
@@ -415,6 +419,7 @@ int main(int n_args, char *ll_args[])
 	FILE *fit_conf;
 	int sec = 0, min = 0;
 	char str_cont_temps[15];
+	pthread_t pala_jugador;
 
 	if ((n_args != 2) && (n_args != 3)) {	/* si numero d'arguments incorrecte */
 		i = 0;
@@ -450,79 +455,95 @@ int main(int n_args, char *ll_args[])
 		exit(4);	/* aborta si hi ha algun problema amb taulell */
 
 	//for(int i=0; i<MAXBALLS; i++) novaPil[i] = 0;
-	int n=0, t=0, t_total=0;
+	int t=0, t_total=0;
 	//_____________________________________________________________________
 	char a1[20], a2[20], a3[20], a4[20], a5[20], a6[20], a7[20], a8[20], a9[20], a10[20], a11[20], a12[20], a13[20];
 	int *p_novaPil;
-
 	/*
 	int f_pil[MAXBALLS], c_pil[MAXBALLS];
 	float pos_f[MAXBALLS], pos_c[MAXBALLS];
 	float vel_f[MAXBALLS], vel_c[MAXBALLS];
 	int novaPil[MAXBALLS];//Centinelles bloc B
 	*/
-
 	//Mapeig a mem. compartida:
 	sprintf(a1,"%i", f_pil[0]);
-	//////
 	sprintf(a2,"%i", c_pil[0]);
-	//////	
 	sprintf(a3,"%i", pos_c[0]);
-	//////
 	sprintf(a4,"%i", pos_f[0]);
-	//////
 	sprintf(a5,"%i", vel_f[0]);
-	//////
 	sprintf(a6,"%i", vel_c[0]);
-	//////
 	sprintf(a7,"%i", c_pal);
-	//////
 	sprintf(a8,"%i", m_pal);
-	
-	novaPil[0] = ini_mem(sizeof(int));
-	p_novaPil = map_mem(novaPil[0]);
-	*p_novaPil = 0;
+	for(int i=0; i<MAXBALLS;i++){
+		novaPil[i] = ini_mem(sizeof(int));
+		p_novaPil = map_mem(novaPil[0]);
+		*p_novaPil = 0;
+	}
 	sprintf(a9,"%i",novaPil[0]);
-
-	sprintf(a10,"%i",nblocs); /* convertir id. memoria en string */
-	sprintf(a11,"%i",n_fil); /* convertir id. memoria en string */
-	sprintf(a12,"%i",n_col); /* convertir id. memoria en string */
-
+	sprintf(a10,"%i",nblocs);
+	sprintf(a11,"%i",n_fil);
+	sprintf(a12,"%i",n_col);
 	sprintf(a13,"%i",id_win);
 
-
-	//tercer arg envia el num de thread 
-	if (pthread_create(&tid[9], NULL, mou_paleta, NULL));
+	//fprintf(stderr,"inici %i %i %i %i %i %i %i %i %i %i %i %i %i////", f_pil[0], c_pil[0], pos_c[0], pos_f[0], vel_f[0], vel_c[0], c_pal, m_pal, novaPil[0], nblocs, n_fil, n_col, id_win);
+	if (pthread_create(&pala_jugador, NULL, mou_paleta, NULL));
+	processosPilota[0] = fork();
+	if(processosPilota[0] == (pid_t) 0)
+    {
+		execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
+	}
 	
-	tpid[0] = fork();//crea procés pilota TODO Warning implicit declaration of function
-	execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
-
-	// variables globals i encastar bucle dins les funcions -> mou paleta i mou pilota passar a threads
-	
-	//if (pthread_create(&tid[0], NULL, mou_pilota, (void*)(intptr_t) 0));
-	//printf("he creat %d threads, espero que acabin!\n\n",n);
-	
+	int *p_f_pil, *p_c_pil;
+	float *p_pos_c, *p_pos_f, *p_vel_f, *p_vel_c;
+	int indNovaPil = 0, n = 1;
 	//Loop principal
 	do{
 		t = 0;
 		//for(int i=0; i<MAXBALLS; i++) t = t || novaPil[i];
+		for(int i=0; i<MAXBALLS;i++){
+			p_novaPil = map_mem(novaPil[i]);
+			t = t || *p_novaPil;
+			indNovaPil=i;
+			break;
+		}
 		win_retard(retard);
 		win_update();
-		/*if(t){
-			novaPil[n]=0;
-			n++;
+		if(t){
+			p_novaPil = map_mem(novaPil[indNovaPil]);
+			*p_novaPil = 0;
 			if (n<numPilotes){
-				if (pos_f[n] > n_fil - 1)
-					pos_f[n] = n_fil - 1;
-				if (pos_c[n] > n_col - 1)
-					pos_c[n] = n_col - 1;
-				f_pil[n] = pos_f[n];
-				c_pil[n] = pos_c[n];
-				//win_escricar(f_pil[n], c_pil[n], '1', INVERS);
-				//pthread_create(&tid[n], NULL, mou_pilota, (void*)(intptr_t) n);
-			}
-		}*/
+				fprintf(stderr,"inici");
+				p_pos_f = map_mem(pos_f[n]);
+				p_pos_c = map_mem(pos_c[n]);
+				fprintf(stderr,"inici1");
+				p_vel_f = map_mem(vel_f[n]);
+				p_vel_c = map_mem(vel_c[n]);
+				p_f_pil = map_mem(f_pil[n]);
+				p_c_pil = map_mem(c_pil[n]);
 
+				if (*p_pos_f > n_fil - 1)
+					*p_pos_f = n_fil - 1;
+				if (*p_pos_c > n_col - 1)
+					*p_pos_c = n_col - 1;
+				*p_f_pil = *p_pos_f;
+				*p_c_pil = *p_pos_c;
+
+				sprintf(a1,"%i", f_pil[n]);
+				sprintf(a2,"%i", c_pil[n]);
+				sprintf(a3,"%i", pos_c[n]);
+				sprintf(a4,"%i", pos_f[n]);
+				sprintf(a5,"%i", vel_f[n]);
+				sprintf(a6,"%i", vel_c[n]);
+				sprintf(a9,"%i",novaPil[n]);
+				fprintf(stderr,"inici2");
+				processosPilota[n] = fork();
+				if(processosPilota[n] == (pid_t) 0)
+				{
+					execlp("./pilota", "pilota", a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, (char*) 0);//(char*) 0 actua com a sentinella
+				}
+			}
+			n++;
+		}
 		sec++;
 		if(sec == 60) min++;
 		sec = sec % 60;
@@ -530,11 +551,7 @@ int main(int n_args, char *ll_args[])
 		win_escristr(str_cont_temps);
 	}while (!fiPilota && !fiPala);
 
-	for(int i = 0; i<numPilotes; i++){
-		pthread_join(tid[i], (void **)&t);
-		t_total+=t;
-	}
-	pthread_join(tid[9], (void **)&t);
+	pthread_join(pala_jugador, (void **)&t);
 	t_total+=t;
 	printf("Entre tots els threads han escrit %d lletres.\n",t_total);
 

@@ -16,9 +16,9 @@ winsuport.o : winsuport2.c winsuport2.h
 memoria.o : memoria.c memoria.h
 	gcc -c -Wall memoria.c -o memoria.o
 
-pilota : pilota.c winsuport2.o winsuport2.h memoria.o memoria.h
-	gcc -Wall -g pilota.c winsuport2.o memoria.o -ggdb -o pilota -lcurses -lpthread
+pilota3 : pilota3.c winsuport2.o winsuport2.h memoria.o memoria.h
+	gcc -Wall -g pilota3.c winsuport2.o memoria.o -ggdb -o pilota3 -lcurses -lpthread
 
 clean : 
-	rm -f winsuport.o mur0 mur1 mur2 mur3 pilota
+	rm -f winsuport.o mur0 mur1 mur2 mur3 pilota3
 

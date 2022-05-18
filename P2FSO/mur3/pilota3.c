@@ -9,7 +9,7 @@
 #define BLKCHAR 'B'
 #define FRNTCHAR 'A'
 
-int c_pal, m_pal, n_col, n_fil, nblocs, *novaPil;
+int c_pal, m_pal, n_col, n_fil, *nblocs, *novaPil, retard;
 
 
 float control_impacte2(int c_pil, float velc0) {
@@ -49,7 +49,7 @@ void comprovar_bloc(int f, int c)
 		/* generar nova pilota ? TODO*/
         if (quin == BLKCHAR) *novaPil=1;
 
-		nblocs--;
+		*nblocs = *nblocs-1;
 	}
 }
 
@@ -71,7 +71,7 @@ int main(int n_args, char *ll_args[]) {
 	a13 -> id_win
 	*/
 
-	int id_f_pil, id_c_pil, id_novaPil , id_win;
+	int id_f_pil, id_c_pil, id_novaPil, id_nblocs, id_win;
 	int *f_pil, *c_pil, *fiPilota;
 	int id_pos_c, id_pos_f, id_vel_f, id_vel_c;
 	float *pos_c, *pos_f, *vel_f, *vel_c;
@@ -101,7 +101,9 @@ int main(int n_args, char *ll_args[]) {
 	id_novaPil = atoi(ll_args[9]);
 	novaPil = map_mem(id_novaPil);
 
-	nblocs = atoi(ll_args[10]);
+	id_nblocs = atoi(ll_args[10]);
+	nblocs = map_mem(id_nblocs);
+
 	n_fil = atoi(ll_args[11]);
 	n_col = atoi(ll_args[12]);
 
@@ -109,6 +111,8 @@ int main(int n_args, char *ll_args[]) {
     p_win = map_mem(id_win);
 
 	fiPilota = map_mem(atoi(ll_args[14]));
+
+	retard = atoi(ll_args[15]);
 
 	//fprintf(stderr,"inici 2 ->%i %i %i %i %i %i %i %i %i %i %i %i %i", id_f_pil, id_c_pil, id_pos_c, id_pos_f, id_vel_f, id_vel_c, c_pal, m_pal, id_novaPil, nblocs, n_fil, n_col, id_win);
 	win_set(p_win,n_fil,n_col);
@@ -121,7 +125,6 @@ int main(int n_args, char *ll_args[]) {
 		c_h = *pos_c + *vel_c;
 		rh = rv = rd = ' ';
 		//fprintf(stderr,"inici %i %i", f_h, c_h);
-		//pthread_mutex_lock(&mutex);
 		if ((f_h != *f_pil) || (c_h != *c_pil)) {
 		/* si posicio hipotetica no coincideix amb la posicio actual */
 			if (f_h != *f_pil) {	/* provar rebot vertical */
@@ -171,10 +174,9 @@ int main(int n_args, char *ll_args[]) {
 			*pos_f += *vel_f;
 			*pos_c += *vel_c;
 		}
-		//pthread_mutex_unlock(&mutex);
-		win_retard(100);
+		win_retard(retard);
 		win_update();
-	}while(!(nblocs==0) && !fora);
+	}while(!(*nblocs==0) && !fora);
 
 	*fiPilota = *fiPilota+1;
 

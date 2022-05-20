@@ -128,7 +128,7 @@ int carrega_configuracio(FILE * fit)
 	fscanf(fit, "%d %d %d\n", &n_fil, &n_col, &m_por);	/* camp de joc */
 	fscanf(fit, "%d %d %d\n", &f_pal, &c_pal, &m_pal);	/* paleta */
 	//fscanf(fit, "%f %f %f %f\n", &pos_f[0], &pos_c[0], &vel_f[0], &vel_c[0]);	/* pilota */
-	while (!feof(fit)) { 
+	while (!feof(fit) && numPilotes<MAXBALLS) { 
 		fscanf(fit,"%f %f %f %f\n",&pos_f[numPilotes], &pos_c[numPilotes], &vel_f[numPilotes], &vel_c[numPilotes]);
 		numPilotes++;
   	}

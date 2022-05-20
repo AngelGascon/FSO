@@ -137,7 +137,7 @@ int carrega_configuracio(FILE * fit)
 	fscanf(fit, "%d %d %d\n", &n_fil, &n_col, &m_por);	/* camp de joc */
 	fscanf(fit, "%d %d %d\n", &f_pal, &c_pal, &m_pal);	/* paleta */
 	//fscanf(fit, "%f %f %f %f\n", &pos_f[0], &pos_c[0], &vel_f[0], &vel_c[0]);	/* pilota */
-	while (!feof(fit)) {
+	while (!feof(fit) && numPilotes<MAXBALLS) {
 		//TODO mem comp
 		pos_f[numPilotes] = ini_mem(sizeof(float));
 		pos_c[numPilotes] = ini_mem(sizeof(float));
@@ -158,7 +158,7 @@ int carrega_configuracio(FILE * fit)
 			ret = 2;
         else if ((m_pal > n_col - 3) || (m_pal < 1) || (f_pal > n_fil-1) || (f_pal < 1) || (c_pal + m_pal > n_col -1 || c_pal < 1 ))
             ret = 3;
-		for(int i = 0; i < numPilotes; i++){//TODO
+		for(int i = 0; i < numPilotes; i++){
 			p_pos_f = map_mem(pos_f[i]);
 			p_pos_c = map_mem(pos_c[i]);
 			if ((*p_pos_f < 1) || (*p_pos_f >= n_fil - 3) || (*p_pos_c < 1)
